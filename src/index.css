@@ -6,14 +6,8 @@
   --color-primary: #09090b;
   --color-muted: #71717a; 
   --color-border: rgba(228, 228, 231, 0.6);
-  --color-surface: #ffffff;
-  --color-surface-ghost: #f4f4f5;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-}
 
 body {
   background: var(--background);
@@ -37,7 +31,7 @@ body {
 
 /*카드*/
 .card {
-  background: var(--color-surface);
+  background: white;
   border-radius: 16px;
   border: 1px solid var(--color-border);
   box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.05);
@@ -46,12 +40,12 @@ body {
 /*버튼*/
 .btn {
   padding: 8px 16px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   border-radius: 999px;
   border: none;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: transform 0.2s;
 }
 
 .btn-primary {
@@ -59,11 +53,19 @@ body {
   color: white;
 }
 
+.btn:hover{
+  transform: scale(1.025);
+}
+
+.btn:active{
+  transform: scale(0.975);
+}
+
 
 .btn-disabled {
-  background: var(--color-surface-ghost);
+  background: rgb(234, 234, 234);
   color: #a1a1aa;
-  cursor: not-allowed;
+  cursor: default;
 }
 
 /*배지(사용가능, 사용중, 준비중 표시하는 거기)*/
@@ -88,7 +90,7 @@ body {
 }
 
 .badge-gray {
-  background: var(--color-surface-ghost);
+  background: rgb(241, 241, 241);
   color: #52525b;
 }
 
@@ -103,7 +105,7 @@ body {
   backdrop-filter: blur(12px);
 }
 
-/*헤더 날개 레이아웃*/
+/*헤더 레이아웃*/
 .header-inner {
   max-width: 1400px;
   margin: 0 auto;
@@ -154,12 +156,13 @@ body {
 /*네비게이션 탭*/
 .nav-tab {
   padding: 6px 12px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   border-radius: 999px;
   text-decoration: none;
   color: #71717a;
   border: 1px solid transparent;
+  transition: color 0.2s;
 }
 
 .nav-tab:hover {
@@ -213,9 +216,17 @@ body {
   border-radius: 999px;
   font-size: 14px;
   font-weight: 500;
-  transition: all 0.15s;
+  transition: all 0.1s;
   background: white;
   color: #52525b;
   border: 1px solid var(--color-border);
   cursor: pointer;
+}
+
+.category-btn:hover{
+  background: rgb(245, 245, 245);
+}
+
+.category-btn:active{
+  transform: scale(0.95);
 }

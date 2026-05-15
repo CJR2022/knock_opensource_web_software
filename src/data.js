@@ -20,5 +20,5 @@ export const items = [
   {id: 5, name: "레이저 포인터", category: "laser", available: 2, inUse: 1, preparing: 0,image: "/images/laser.jpg"},
   {id: 6, name: "노트북 충전기", category: "charger", available: 5, inUse: 2, preparing: 2,image: "/images/charger.jpg"},
   {id: 7, name: "상비약", category: "medicine", available: 8, inUse: 0, preparing: 1,image: "/images/medicine.jpg"},
-  {id: 8, name: "축구공", category: "soccer", available: 3, inUse: 3, preparing: 4,image: "/images/soccer.jpg"},
+  {id: 8, name: "축구공", category: "soccer", available: 0, inUse: 3, preparing: 4,image: "/images/soccer.jpg"},
 ];
