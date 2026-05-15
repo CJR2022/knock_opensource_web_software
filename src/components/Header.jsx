@@ -1,5 +1,6 @@
 import { useLocation } from "react-router-dom"; //현 URL 정보 가져오는 친구
 
+//헤더 메뉴탭도 NavLink 방식으로 바꿀검다
 
 const tabs = [
   { id: "main", label: "메인", href: "/" },
@@ -10,8 +11,8 @@ const tabs = [
 export default function Header() {
   const location = useLocation(); //URL 정보 가져오기
   const pathname = location.pathname;//슬래시~ 내용 ex)"/admin"
-  const activeTab = pathname === "/admin" ? "admin" :
-                   pathname === "/inquiry" ? "inquiry" : "main";
+  const activeTab = pathname === "/" ? "main" :
+                   pathname === "/inquiry" ? "inquiry" : "admin";
 
   return (
     <header className="header">
