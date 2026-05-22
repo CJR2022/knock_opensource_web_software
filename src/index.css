@@ -230,12 +230,19 @@ body {
   border: 1px solid var(--color-border);
   cursor: pointer;
 }
+.category-btn.active{
+  background-color: black;
+  color: white;
+}
 
 .category-btn:hover{
   background: rgb(245, 245, 245);
   transform: translateY(-1px)
 }
-
+.category-btn.active:hover{
+  background: rgb(12, 12, 12);
+  transform: translateY(-1px)
+}
 .category-btn:active{
   transform: scale(0.95);
 }
