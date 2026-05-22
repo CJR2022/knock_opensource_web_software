@@ -18,12 +18,34 @@ const menu = [
 //NavLink에 쓴 isActive는 라이브러리에서 자체적으로 계산되는 변수임 현재URL이랑 to URL이랑 비교해서 T/F 값 저장
 export default function AdminLayout() {
     return (
-        <div className="admin-layout">
-            <main className="admin-content">
+        <div className="admin-layout flex flex-col md:flex-row min-h-[100dvh]">
+            {/* 데스크탑 사이드바 */}
+            <aside className="hidden md:flex admin-sidebar flex-col">
+                <nav className="admin-sidebar-nav">
+                    {menu.map((m) => (
+                        <NavLink
+                            key={m.path}
+                            to={m.path}
+                            end
+                            className={({ isActive }) =>
+                                isActive ? "admin-sidebar-item active" : "admin-sidebar-item"
+                            }
+                        >
+                            <img src={m.icon} alt={m.label} className="admin-sidebar-icon" />
+                            <span className="admin-sidebar-label">{m.label}</span>
+                        </NavLink>
+                    ))}
+                </nav>
+            </aside>
+
+            {/* 메인 콘텐츠 */}
+            <main className="flex-1 admin-content">
                 <Outlet />
             </main>
-            <nav className="admin-bottom-nav">
-                {menu.map((m) =>(
+
+            {/* 모바일 하단 네비게이션 */}
+            <nav className="flex md:hidden admin-bottom-nav">
+                {menu.map((m) => (
                     <NavLink
                         key={m.path}
                         to={m.path}
