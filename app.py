@@ -125,5 +125,47 @@ def db_test():
         conn.close()
 
 
+@app.route('/api/categories', methods=['GET'])
+def get_categories():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id, name FROM categories")
+            rows = cursor.fetchall()
+        return jsonify(rows), 200
+    finally:
+        conn.close()
+
+
+@app.route('/api/items', methods=['GET'])
+def get_items():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT 
+                    i.id,
+                    i.name,
+                    i.category_id,
+                    i.img_url AS image,
+                    i.total_count,
+                    i.preparing_count AS preparing,
+                    COALESCE(SUM(CASE 
+                        WHEN r.status IN ('approved', 'rented', 'overdue') 
+                        THEN r.quantity ELSE 0 
+                    END), 0) AS inUse
+                FROM items i
+                LEFT JOIN rentals r ON r.item_id = i.id
+                GROUP BY i.id
+            """)
+            rows = cursor.fetchall()
+            for row in rows:
+                row['available'] = row['total_count'] - row['preparing'] - row['inUse']
+                del row['total_count']
+        return jsonify(rows), 200
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
