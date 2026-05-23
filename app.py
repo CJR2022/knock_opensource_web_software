@@ -175,5 +175,36 @@ def get_items():
         conn.close()
 
 
+@app.route('/api/dashboard/kpi', methods=['GET'])
+def dashboard_kpi():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) AS total_items FROM items")
+            total_items = cursor.fetchone()['total_items']
+
+            cursor.execute("SELECT COALESCE(SUM(quantity), 0) AS rented FROM rentals WHERE status IN ('approved', 'rented', 'overdue')")
+            rented = cursor.fetchone()['rented']
+
+            cursor.execute("SELECT COUNT(*) AS pending FROM rentals WHERE status = 'pending'")
+            pending = cursor.fetchone()['pending']
+
+            cursor.execute("SELECT COUNT(*) AS overdue FROM rentals WHERE status = 'overdue'")
+            overdue = cursor.fetchone()['overdue']
+
+            cursor.execute("SELECT COUNT(*) AS active_users FROM users WHERE status = 'active' AND role = 'student'")
+            active_users = cursor.fetchone()['active_users']
+
+        return jsonify({
+            "total_items": total_items,
+            "rented": rented,
+            "pending": pending,
+            "overdue": overdue,
+            "active_users": active_users
+        }), 200
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
