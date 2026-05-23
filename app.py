@@ -206,5 +206,25 @@ def dashboard_kpi():
         conn.close()
 
 
+@app.route('/api/dashboard/stats', methods=['GET'])
+def dashboard_stats():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT c.name, COUNT(i.id) AS count
+                FROM categories c
+                LEFT JOIN items i ON c.id = i.category_id
+                GROUP BY c.id
+            """)
+            categories = cursor.fetchall()
+
+        return jsonify({
+            "categories": categories
+        }), 200
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
