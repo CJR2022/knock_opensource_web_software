@@ -30,13 +30,13 @@ export default function LoginPage() {
                 const userdata = data.user;
 
                 if (maintain) {
-                    localStorage.setItem("username", JSON.stringify(userdata));
+                    localStorage.setItem("user", JSON.stringify(userdata));
 
                 } else {
-                    sessionStorage.setItem("username", JSON.stringify(userdata));
+                    sessionStorage.setItem("user", JSON.stringify(userdata));
                 }
                 alert(data.message);
-                navigate('/');
+                window.location.href="/";
 
             } else {
                 alert(data.message);
