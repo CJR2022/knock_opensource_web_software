@@ -8,7 +8,7 @@ const tabs = [
 ];
 
 export default function Header() {
-  const userstring= localStorage.getItem("username")|| sessionStorage.getItem("username");
+  const userstring= localStorage.getItem("user")|| sessionStorage.getItem("user");
   const user= userstring ? JSON.parse(userstring) : null;
 
   return (

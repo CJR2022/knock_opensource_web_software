@@ -92,11 +92,19 @@ def login():
                     return jsonify({"message": "존재하지 않는 학번입니다"})
                 db_password = user['password_hash']
                 db_role = user['role']
+                db_name = user['name']
+                db_phone = user['phone']
+                db_overdue_count = user['overdue_count']
+
                 if db_password != password:
                     return jsonify({"message":"비밀번호가 일치하지 않습니다"}),401
                 return jsonify({"message":"로그인 성공"
                                 , "user":{"studentid":studentid,
-                                          "role": db_role
+                                          "role": db_role,
+                                          "name":db_name,
+                                          "phone":db_phone,
+                                          "overdue_count":db_overdue_count
+
                                           }}),200
         except Exception as e:
             print("db 접속에러 {e}")
