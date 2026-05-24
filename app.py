@@ -298,6 +298,61 @@ def dashboard_stats():
     finally:
         conn.close()
 
+@app.route('/api/students/pending', methods=['GET'])
+def dashboard_students():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT id student_number, name, phone
+                FROM users WHERE status = 'pending'
+            """)
+            new_student = cursor.fetchall()
+        
+        return jsonify(new_student), 200
+    finally:
+        conn.close()
+
+@app.route('/api/students/active', methods=['GET'])
+def get_active_students():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT id, student_number, name, phone, overdue_count, block_period
+                FROM users
+                WHERE status IN ('active', 'blocked') AND role = 'student'
+            """)
+            students = cursor.fetchall()
+
+            cursor.execute("""
+                SELECT r.user_id, i.name AS item_name, r.status, r.quantity
+                FROM rentals r
+                JOIN items i ON r.item_id = i.id
+                WHERE r.status IN ('approved', 'rented', 'overdue')
+            """)
+            rentals = cursor.fetchall()
+
+        rental_map = {}
+        for r in rentals:
+            uid = r['user_id']
+            if uid not in rental_map:
+                rental_map[uid] = []
+            rental_map[uid].append({
+                'item_name': r['item_name'],
+                'status': r['status'],
+                'quantity': r['quantity']
+            })
+
+        for s in students:
+            s['is_blocked'] = s['block_period'] is not None
+            s['current_rentals'] = rental_map.get(s['id'], [])
+            del s['block_period']
+
+        return jsonify({"students": students}), 200
+    finally:
+        conn.close()
+
 
 if __name__ == "__main__":
     app.run(port=8000, debug=True)

@@ -8,11 +8,13 @@ import studentIcon from "../../assets/icons/student.svg";
 
 const menu = [
     { path: "/admin", label: "대시보드", icon: dashboardIcon },
-    { path: "/admin/AdminInquiry", label: "문의", icon: inquiryIcon },
+    { path: "/admin/StudentManager", label: "학생", icon: studentIcon },
     { path: "/admin/ItemManager", label: "물품", icon: itemIcon },
-    { path: "/admin/RentalManager", label: "대여", icon: rentalIcon },
     { path: "/admin/ScheduleManager", label: "스케줄", icon: scheduleIcon },
-    { path: "/admin/StudentManager", label: "학생", icon: studentIcon }
+    { path: "/admin/RentalManager", label: "대여", icon: rentalIcon },
+    { path: "/admin/AdminInquiry", label: "문의", icon: inquiryIcon },
+    
+    
 ];
 
 //NavLink에 쓴 isActive는 라이브러리에서 자체적으로 계산되는 변수임 현재URL이랑 to URL이랑 비교해서 T/F 값 저장
