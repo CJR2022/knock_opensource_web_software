@@ -15,6 +15,12 @@ export default function AdminDashboard() {
       .then((data) => setKpi(data))
       .catch((err) => console.error("KPI 불러오기 실패:", err));
   }, []);
+  useEffect(()=>{
+    fetch("http://localhost:8000/api/dashboard/stats")
+    .then((res) => res.json())
+    .then((data) => setCategories(data.categories))
+    .catch((err) => console.error("카테고리정보 불러오기 실패: ", err));
+  }, []);
 
   const cards = [
     { label: "총 등록 물품", key: "total_items" },
