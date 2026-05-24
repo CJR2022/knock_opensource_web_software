@@ -304,7 +304,7 @@ def dashboard_students():
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT id student_number, name, phone
+                SELECT id student_number, name, phone, created_at
                 FROM users WHERE status = 'pending'
             """)
             new_student = cursor.fetchall()
@@ -319,7 +319,7 @@ def get_active_students():
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT id, student_number, name, phone, overdue_count, block_period
+                SELECT id, student_number, name, phone, overdue_count, block_period, created_at
                 FROM users
                 WHERE status IN ('active', 'blocked') AND role = 'student'
             """)
@@ -349,7 +349,7 @@ def get_active_students():
             s['current_rentals'] = rental_map.get(s['id'], [])
             del s['block_period']
 
-        return jsonify({"students": students}), 200
+        return jsonify(students), 200
     finally:
         conn.close()
 
