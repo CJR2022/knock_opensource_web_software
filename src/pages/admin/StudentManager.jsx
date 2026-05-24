@@ -4,7 +4,7 @@ import {useState, useEffect} from "react";
 export default function StudentManager() {
     
     const [pendingStudents, setPendingStudents] = useState();
-    const [activeStudent, setActiveStudent]
+    const [activeStudent, setActiveStudent] = useState();
 
     useEffect(()=>{
         fetch('"http://localhost:8000/api/students/pending')
@@ -21,6 +21,8 @@ export default function StudentManager() {
 
 
     return (
-        
+        <div className="page">
+
+        </div>
     );
 }
