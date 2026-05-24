@@ -1,6 +1,5 @@
-import { useLocation } from "react-router-dom"; //현 URL 정보 가져오는 친구
-
-//헤더 메뉴탭도 NavLink 방식으로 바꿀검다
+import { Link, useNavigate} from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 const tabs = [
   { id: "main", label: "메인", href: "/" },
@@ -9,10 +8,8 @@ const tabs = [
 ];
 
 export default function Header() {
-  const location = useLocation(); //URL 정보 가져오기
-  const pathname = location.pathname;//슬래시~ 내용 ex)"/admin"
-  const activeTab = pathname === "/" ? "main" :
-                   pathname === "/inquiry" ? "inquiry" : "admin";
+  const userstring= localStorage.getItem("user")|| sessionStorage.getItem("user");
+  const user= userstring ? JSON.parse(userstring) : null;
 
   return (
     <header className="header">
@@ -27,21 +24,30 @@ export default function Header() {
 
           <nav className="nav-pill">
             {tabs.map((tab) => (
-              <a
+              <NavLink
                 key={tab.id}
-                href={tab.href}
-                className={`nav-tab ${activeTab === tab.id ? "active" : ""}`}
+                to={tab.href}
+                className={({isActive})=>isActive?"nav-tab active":"nav-tab"}
               >
                 {tab.label}
-              </a>
+              </NavLink>
             ))}
           </nav>
         </div>
+        <div className="header-right">
+          {user ?(
+              <Link to="/mypage" className="btn btn-primary inline-block text-center pt-2">
+            마이 페이지
+          </Link>
 
-        <button className="btn btn-primary">
-          관리자 A
-        </button>
+          ) :(
+
+        <Link to="/login" className="btn btn-primary inline-block text-center pt-2">
+            로그인
+          </Link>
+              )}
+          </div>
       </div>
-    </header>
+        </header>
   );
 }

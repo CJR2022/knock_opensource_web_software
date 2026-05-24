@@ -2,3 +2,5 @@ Flask
 flask-cors
 PyMySQL
 python-dotenv
+opencv-python
+pyzbar
