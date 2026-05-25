@@ -1,0 +1,14 @@
+.search:focus{
+    outline: none;
+}
+.searchBar{
+    border-radius: 999px;
+    background-color: rgb(243, 243, 243);
+    cursor: text;
+}
+.searchBar img{
+    display: inline;
+}
+.newStudent p:nth-child(1){
+    font-size: 20px;
+}
