@@ -5,6 +5,7 @@ import searchIcon from "../../assets/icons/search.svg";
 export default function StudentManager() {
   const [pendingStudents, setPendingStudents] = useState([]);
   const [activeStudents, setActiveStudents] = useState([]);
+  const [input, setInput] = useState("");
 
   useEffect(() => {
     fetch("http://localhost:8000/api/students/pending")
@@ -25,37 +26,85 @@ export default function StudentManager() {
       <div className="flex flex-col gap-6">
         <label className="searchBar p-4">
           <img src={searchIcon} alt="검색" className="w-4 h-4 mr-2 mb-1"/>
-          <input type="text" className="search flex-1" placeholder="학번 혹은 이름을 입력하여 검색" ></input>
+          <input type="text" className="search flex-1" placeholder="학번 혹은 이름을 입력하여 검색" onChange={(e)=>setInput(e.target.value)} ></input>
         </label>
         <section>
           <h2 className="text-lg font-bold mb-3">신규 가입자</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {pendingStudents.map((student) => (
-              <div key={student.id} className="card newStudent p-4">
-                <p>{student.student_number}</p>
-                <p>{student.name}</p>
-                <p>{student.phone}</p>
-                <p>{student.created_at}</p>
-              </div>
-            ))}
+            {pendingStudents.map((student) => {
+              if(student.name.includes(input)||String(student.student_number).includes(input)){
+                return(
+                <div key={student.id} className="card newStudent p-5">
+                  <div className="card-header">
+                    <span className="student-id">{student.student_number}</span>
+                    <span className="student-date">{student.created_at}</span>
+                  </div>
+
+                  <div className="info-row">
+                    <span className="label">이름</span>
+                    <span className="value">{student.name}</span>
+                  </div>
+
+                  <div className="info-row">
+                    <span className="label">학번</span>
+                    <span className="value">{student.student_number}</span>
+                  </div>
+
+                  <div className="info-row">
+                    <span className="label">전화번호</span>
+                    <span className="value">{student.phone}</span>
+                  </div>
+
+                  <div className="card-footer">
+                    <span className="status-text">승인 전 상태</span>
+                    <button className="approve-btn">승인 하기</button>
+                  </div>
+                </div>);
+                return;
+              }
+            })}
           </div>
         </section>
 
         <section>
           <h2 className="text-lg font-bold mb-3">기존 가입자</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {activeStudents.map((student) => (
-              <div key={student.id} className="card p-4">
-                <p>{student.student_number}</p>
-                <p>{student.name}</p>
-                <p>{student.phone}</p>
-                <p>{student.created_at}</p>
-                <span>대여: </span>
-                {student.current_rentals.map((rental) =>{
-                    <span>{rental.item_name} </span>
-                })}
-              </div>
-            ))}
+            {activeStudents.map((student) =>{
+              if(student.name.includes(input)||String(student.student_number).includes(input)){
+                return(
+                <div key={student.id} className="card student p-5">
+                  <div className="card-header">
+                    <span className="student-id">{student.student_number}</span>
+                    <span className="student-date">{student.created_at?.split('T')[0]}</span>
+                  </div>
+
+                  <div className="info-row">
+                    <span className="label">이름</span>
+                    <span className="value">{student.name}</span>
+                    <span className="label">학번</span>
+                    <span className="value">{student.student_number}</span>
+                  </div>
+
+                  <div className="info-row">
+                    <span className="label">전화번호</span>
+                    <span className="value">{student.phone}</span>
+                  </div>
+
+                  <div className="rental-info">
+                    <p>대여 물품: <strong>{student.current_rentals.length > 0 ? student.current_rentals.map(r => r.item_name).join(', ') : '없음'}</strong></p>
+                    <p>연체 횟수: <strong>{student.overdue_count}회</strong></p>
+                  </div>
+
+                  <div className="card-footer">
+                    <span className={`status-btn ${student.current_rentals.length > 0 ? 'renting' : 'available'}`}>
+                      {student.current_rentals.length > 0 ? '대여 중' : '대여 가능'}
+                    </span>
+                  </div>
+                </div>);
+                return;
+              }
+            }
+            )}
           </div>
         </section>
       </div>

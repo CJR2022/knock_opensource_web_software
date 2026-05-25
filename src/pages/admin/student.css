@@ -6,9 +6,188 @@
     background-color: rgb(243, 243, 243);
     cursor: text;
 }
-.searchBar img{
+.searchBar img {
     display: inline;
 }
-.newStudent p:nth-child(1){
-    font-size: 20px;
+.newStudent {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+}
+
+.newStudent .card-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.newStudent .card-header .student-id {
+    font-size: 18px;
+    font-weight: 700;
+    color: #09090b;
+    letter-spacing: -0.01em;
+}
+
+.newStudent .card-header .student-date {
+    font-size: 12px;
+    color: #a1a1aa;
+    font-weight: 400;
+}
+
+.newStudent .info-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.newStudent .info-row .label {
+    display: inline-block;
+    text-align: center;
+    min-width: 52px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #f4f4f5;
+    color: #52525b;
+    border: 1px solid rgba(228, 228, 231, 0.6);
+}
+
+.newStudent .info-row .value {
+    font-size: 15px;
+    color: #09090b;
+    font-weight: 500;
+}
+
+.newStudent .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(228, 228, 231, 0.6);
+}
+
+.newStudent .status-text {
+    font-size: 12px;
+    color: #a1a1aa;
+}
+
+.newStudent .approve-btn {
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 999px;
+    border: 1px solid #09090b;
+    background: transparent;
+    color: #09090b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.newStudent .approve-btn:hover {
+    background: #09090b;
+    color: #fff;
+}
+
+.newStudent .approve-btn:active {
+    transform: scale(0.97);
+}
+
+.student {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.student .card-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2px;
+}
+
+.student .card-header .student-id {
+    font-size: 18px;
+    font-weight: 700;
+    color: #09090b;
+}
+
+.student .card-header .student-date {
+    font-size: 12px;
+    color: #a1a1aa;
+}
+
+.student .info-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.student .info-row .label {
+    display: inline-block;
+    text-align: center;
+    min-width: 52px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #f4f4f5;
+    color: #52525b;
+    border: 1px solid rgba(228, 228, 231, 0.6);
+}
+
+.student .info-row .value {
+    font-size: 15px;
+    color: #09090b;
+    font-weight: 500;
+}
+
+.student .rental-info {
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(228, 228, 231, 0.6);
+}
+
+.student .rental-info p {
+    font-size: 13px;
+    color: #52525b;
+    margin-bottom: 4px;
+}
+
+.student .rental-info p strong {
+    color: #09090b;
+    font-weight: 600;
+}
+
+.student .card-footer {
+    display: inline-block;
+    text-align: right;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.student .status-btn {
+    display: inline-blcok;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid #09090b;
+    background: transparent;
+    color: #09090b;
+}
+
+.student .status-btn.available {
+    background: #ecfdf5;
+    border-color: #047857;
+    color: #047857;
+}
+
+.student .status-btn.renting {
+    background: #fff1f2;
+    border-color: #be123c;
+    color: #be123c;
 }
