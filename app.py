@@ -74,6 +74,7 @@ def signup():
     except Exception as e:
         print("서버에러")
         return jsonify({"message": "서버에러발생"}), 500
+
 @app.route('/api/login', methods=['POST'])
 def login():
     try:

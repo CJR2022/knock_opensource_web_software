@@ -22,7 +22,7 @@
   flex: 1;
   padding: 10px 12px;
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: 50px;
   background: var(--background);
   color: var(--color-muted);
   font-size: 14px;
@@ -32,7 +32,7 @@
 
 .selected {
   background: white;
-  color: #09090b;
+  color: var(--color-primary);
   box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
 }
 
@@ -66,7 +66,7 @@
   margin-bottom: 12px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--color-border);
-  color: #09090b;
+  color: var(--color-primary);
   font-size: 15px;
   font-weight: 600;
   overflow: hidden;
@@ -102,14 +102,14 @@
   padding-right: 34px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--color-border);
-  color: #09090b;
+  color: var(--color-primary);
   font-size: 16px;
   font-weight: 600;
 }
 
 .faqdetail p {
   margin-top: 14px;
-  color: #52525b;
+  color: var(--color-primary);
   font-size: 14px;
   line-height: 1.8;
 }
@@ -121,9 +121,9 @@
   width: 26px;
   height: 26px;
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: 50px;
   background: white;
-  color: #09090b;
+  color: var(--color-primary);
   font-size: 13px;
   cursor: pointer;
 }
@@ -142,7 +142,7 @@
   border: 1px solid var(--color-border);
   border-radius: 12px;
   background: white;
-  color: #09090b;
+  color: var(--color-primary);
   font-size: 14px;
 }
 
@@ -170,8 +170,8 @@
   margin-left: auto;
   padding: 8px 18px;
   border: none;
-  border-radius: 999px;
-  background: #09090b;
+  border-radius: 50px;
+  background: var(--color-primary);
   color: white;
   font-size: 14px;
   cursor: pointer;
