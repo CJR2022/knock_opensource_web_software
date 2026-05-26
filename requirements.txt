@@ -4,4 +4,3 @@ PyMySQL
 python-dotenv
 opencv-python
 pyzbar
-recharts

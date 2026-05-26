@@ -75,9 +75,6 @@ export default function StudentManager() {
                   <div className="info-row">
                     <span className="label">이름</span>
                     <span className="value">{student.name}</span>
-                  </div>
-
-                  <div className="info-row">
                     <span className="label">학번</span>
                     <span className="value">{student.student_number}</span>
                   </div>
