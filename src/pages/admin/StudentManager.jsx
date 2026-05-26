@@ -22,6 +22,7 @@ export default function StudentManager() {
             }
           }
           setPendingStudents(newList);
+          fetchActiveStudents();
         } else {
           alert(data.message);
         }
@@ -40,11 +41,17 @@ export default function StudentManager() {
   }, []);
 
   useEffect(() => {
+    fetchActiveStudents();
+  }, []);
+
+  const fetchActiveStudents = () => {
     fetch("http://localhost:8000/api/students/active")
       .then((res) => res.json())
       .then((data) => setActiveStudents(data))
       .catch((err) => console.error("기존 학생정보 불러오기 실패", err));
-  }, []);
+  };
+
+
 
   return (
     <div className="page">
