@@ -304,7 +304,7 @@ def dashboard_students():
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT id student_number, name, phone, created_at
+                SELECT id, student_number, name, phone, created_at
                 FROM users WHERE status = 'pending'
             """)
             new_student = cursor.fetchall()
