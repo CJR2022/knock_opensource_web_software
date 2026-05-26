@@ -62,7 +62,7 @@ export default function StudentManager() {
         </label>
         <section>
           <h2 className="text-lg font-bold mb-3">신규 가입자</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {pendingStudents.map((student) => {
               if(student.name.includes(input)||String(student.student_number).includes(input)){
                 return(
@@ -75,6 +75,8 @@ export default function StudentManager() {
                   <div className="info-row">
                     <span className="label">이름</span>
                     <span className="value">{student.name}</span>
+                  </div>
+                  <div className="info-row">
                     <span className="label">학번</span>
                     <span className="value">{student.student_number}</span>
                   </div>
@@ -97,7 +99,7 @@ export default function StudentManager() {
 
         <section>
           <h2 className="text-lg font-bold mb-3">기존 가입자</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {activeStudents.map((student) =>{
               if(student.name.includes(input)||String(student.student_number).includes(input)){
                 return(
@@ -110,6 +112,8 @@ export default function StudentManager() {
                   <div className="info-row">
                     <span className="label">이름</span>
                     <span className="value">{student.name}</span>
+                  </div>
+                  <div className="info-row">
                     <span className="label">학번</span>
                     <span className="value">{student.student_number}</span>
                   </div>
