@@ -319,7 +319,7 @@ def get_active_students():
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT id, student_number, name, phone, overdue_count, block_period, created_at
+                SELECT id, student_number, name, phone, overdue_count, status, block_period, created_at
                 FROM users
                 WHERE status IN ('active', 'blocked') AND role = 'student'
             """)
@@ -345,7 +345,7 @@ def get_active_students():
             })
 
         for s in students:
-            s['is_blocked'] = s['block_period'] is not None
+            s['is_blocked'] = s['status'] == 'blocked'
             s['current_rentals'] = rental_map.get(s['id'], [])
             del s['block_period']
 

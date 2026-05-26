@@ -104,7 +104,7 @@ export default function StudentManager() {
                 <div key={student.id} className="card student p-5">
                   <div className="card-header">
                     <span className="student-id">{student.student_number}</span>
-                    <span className="student-date">{student.created_at?.split('T')[0]}</span>
+                    <span className="student-date">{student.created_at}</span>
                   </div>
 
                   <div className="info-row">
