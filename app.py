@@ -89,7 +89,7 @@ def login():
                 cursor.execute(check_sql, (studentid,))
                 user = cursor.fetchone()
                 if not user:
-                    return jsonify({"message": "존재하지 않는 학번입니다"})
+                    return jsonify({"message": "존재하지 않는 학번입니다"}),404
                 db_password = user['password_hash']
                 db_role = user['role']
                 db_name = user['name']

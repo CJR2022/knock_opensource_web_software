@@ -23,15 +23,21 @@ export default function Header() {
           </a>
 
           <nav className="nav-pill">
-            {tabs.map((tab) => (
-              <NavLink
-                key={tab.id}
-                to={tab.href}
-                className={({isActive})=>isActive?"nav-tab active":"nav-tab"}
-              >
-                {tab.label}
-              </NavLink>
-            ))}
+            {tabs.map((tab) => {
+              //user가 null일때 user.role에 접근하면 사이트가 죽어버림 -> and단축평가로 회피
+              if (tab.id==="admin" && !(user&&user.role==="admin")) {
+                return null;
+              }
+              return (
+                <NavLink
+                  key={tab.id}
+                  to={tab.href}
+                  className={({isActive})=>isActive?"nav-tab active":"nav-tab"}
+                >
+                  {tab.label}
+                </NavLink>
+              );
+            })}
           </nav>
         </div>
         <div className="header-right">
