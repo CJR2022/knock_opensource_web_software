@@ -1,36 +1,53 @@
 .mulphon-wating {
-  margin-top: 120px;
-  text-align: center;
-  color: var(--color-muted);
-  font-size: 14px;
+    margin-top: 120px;
+    text-align: center;
+    color: var(--color-muted);
+      font-size: 14px;
 }
 
 .mulphon-title {
-  margin-bottom: 12px;
-  color: var(--color-primary);
-  font-size: 22px;
-  font-weight: bold;
+    margin-bottom: 12px;
+    color: var(--color-primary);
+    font-size: 22px;
+    font-weight: bold;
 }
 
 .mulphonimg-area {
-  width: 100%;
-  height: 170px;
-  margin-bottom: 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  background-color: white;
-  overflow: hidden;
+    width: 100%;
+    height: 170px;
+    margin-bottom: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background-color: white;
+    padding: 8px;
+    text-align:center;
+    overflow: hidden;
 }
 
 .mulphon-image {
-  display: block;
-  width: 100%;
-  height: 100%;
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    margin : auto;
 }
 
 .mulphon-name {
-  margin-bottom: 10px;
-  color: black;
-  font-size: 18px;
-  font-weight: bold;
+    margin-bottom: 10px;
+    color: black;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.mulphon-state{
+    margin-top : 10px
+}
+
+.mulphon-action-button-area{
+    margin:10px;
+    text-align : right;
+}
+
+.mulphon-action-btn{
+    display:inline-block;
+    margin-left:6px;
 }

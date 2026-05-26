@@ -5,9 +5,11 @@ export default function ItemManager() {
     const [mulphonlist, setmulphonlist] = useState([]);
     const [mulphoncall, setmulphoncall] = useState(true);
 
+
     function getmulphon() {
         setmulphoncall(true);
 
+        /* 재활용 id name image preparing inUse available 정도만 쓸듯*/
         fetch("http://localhost:8000/api/items")
             .then((res) => res.json())
             .then((data) => {
@@ -31,18 +33,6 @@ export default function ItemManager() {
         );
     }
 
-    if (mulphonlist.length === 0) {
-        return (
-            <main className="page">
-                <h2 className="mulphon-title">물품 관리</h2>
-
-                <div className="card p-3">
-                    <p className="mulphon-wating">등록된 물품이 없습니다.</p>
-                </div>
-            </main>
-        );
-    }
-
     return (
         <main className="page">
             <div className="flex justify-between items-center mb-3">
@@ -62,7 +52,7 @@ export default function ItemManager() {
 
                         <h3 className="mulphon-name">{mulphon.name}</h3>
 
-                        <div className="flex flex-wrap items-center gap-1">
+                        <div className="flex flex-wrap items-center gap-1 mulphon-state">
                             <span className="badge badge-green">
                                 사용가능 : {mulphon.available}
                             </span>
@@ -74,6 +64,20 @@ export default function ItemManager() {
                             <span className="badge badge-gray">
                                 준비중 : {mulphon.preparing}
                             </span>
+                        </div>
+
+                        <div className="mulphon-action-button-area">
+                            <button className="mulphon-action-btn">
+                                신청자 확인
+                            </button>
+
+                            <button className="mulphon-action-btn">
+                                대여자 확인
+                            </button>
+
+                            <button className="mulphon-action-btn">
+                                물품 추가
+                            </button>
                         </div>
                     </div>
                 ))}

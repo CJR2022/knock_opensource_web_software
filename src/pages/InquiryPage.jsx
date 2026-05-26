@@ -136,7 +136,7 @@ export default function InquiryPage() { /*로그인 구현시 props로 받고 US
             );
 
         munibody = (
-            <div className="faqarea">
+            <div className="faqarea grid grid-cols-1 md:grid-cols-2 gap-4">
                 {faqList.map((faq) => (
                     <button className="faqcard" key={faq.id} onClick={() => setfaqSelector(faq)}>
                         <h3>{faq.munititle}</h3>
