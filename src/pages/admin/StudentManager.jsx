@@ -7,6 +7,31 @@ export default function StudentManager() {
   const [activeStudents, setActiveStudents] = useState([]);
   const [input, setInput] = useState("");
 
+  const handleApprove = (id) => {
+    fetch(`http://localhost:8000/api/students/${id}/approve`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          const newList = [];
+          for (let i = 0; i < pendingStudents.length; i++) {
+            if (pendingStudents[i].id !== id) {
+              newList.push(pendingStudents[i]);
+            }
+          }
+          setPendingStudents(newList);
+        } else {
+          alert(data.message);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("승인 요청 중 오류가 발생했습니다.");
+      });
+  };
+
   useEffect(() => {
     fetch("http://localhost:8000/api/students/pending")
       .then((res) => res.json())
@@ -57,7 +82,7 @@ export default function StudentManager() {
 
                   <div className="card-footer">
                     <span className="status-text">승인 전 상태</span>
-                    <button className="approve-btn">승인 하기</button>
+                    <button className="approve-btn" onClick={() => handleApprove(student.id)}>승인 하기</button>
                   </div>
                 </div>);
                 return;
@@ -96,8 +121,8 @@ export default function StudentManager() {
                   </div>
 
                   <div className="card-footer">
-                    <span className={`status-btn ${student.current_rentals.length > 0 ? 'renting' : 'available'}`}>
-                      {student.current_rentals.length > 0 ? '대여 중' : '대여 가능'}
+                    <span className={`status-btn ${student.is_blocked ? 'disAvail' : 'available'}`}>
+                      {student.is_blocked ? '대여 불가' : '대여 가능'}
                     </span>
                   </div>
                 </div>);

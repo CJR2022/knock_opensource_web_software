@@ -353,6 +353,40 @@ def get_active_students():
     finally:
         conn.close()
 
+@app.route('/api/students/<int:student_id>/approve', methods=['POST'])
+def approve_student(student_id):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            sql = """
+                UPDATE users
+                SET status = 'active'
+                WHERE id = %s AND status = 'pending'
+            """
+            cursor.execute(sql, (student_id,))
+            conn.commit()
+
+            if cursor.rowcount == 0:
+                return jsonify({
+                    "success": False,
+                    "message": "이미 처리되었거나 존재하지 않는 학생입니다."
+                }), 400
+
+        return jsonify({
+            "success": True,
+            "message": "승인되었습니다."
+        }), 200
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({
+            "success": False,
+            "message": "승인 처리 중 오류가 발생했습니다."
+        }), 500
+
+    finally:
+        conn.close()
+
 
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
