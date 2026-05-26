@@ -298,6 +298,95 @@ def dashboard_stats():
     finally:
         conn.close()
 
+@app.route('/api/students/pending', methods=['GET'])
+def dashboard_students():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT id, student_number, name, phone, created_at
+                FROM users WHERE status = 'pending'
+            """)
+            new_student = cursor.fetchall()
+        
+        return jsonify(new_student), 200
+    finally:
+        conn.close()
+
+@app.route('/api/students/active', methods=['GET'])
+def get_active_students():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT id, student_number, name, phone, overdue_count, status, block_period, created_at
+                FROM users
+                WHERE status IN ('active', 'blocked') AND role = 'student'
+            """)
+            students = cursor.fetchall()
+
+            cursor.execute("""
+                SELECT r.user_id, i.name AS item_name, r.status, r.quantity
+                FROM rentals r
+                JOIN items i ON r.item_id = i.id
+                WHERE r.status IN ('approved', 'rented', 'overdue')
+            """)
+            rentals = cursor.fetchall()
+
+        rental_map = {}
+        for r in rentals:
+            uid = r['user_id']
+            if uid not in rental_map:
+                rental_map[uid] = []
+            rental_map[uid].append({
+                'item_name': r['item_name'],
+                'status': r['status'],
+                'quantity': r['quantity']
+            })
+
+        for s in students:
+            s['is_blocked'] = s['status'] == 'blocked'
+            s['current_rentals'] = rental_map.get(s['id'], [])
+            del s['block_period']
+
+        return jsonify(students), 200
+    finally:
+        conn.close()
+
+@app.route('/api/students/<int:student_id>/approve', methods=['POST'])
+def approve_student(student_id):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            sql = """
+                UPDATE users
+                SET status = 'active'
+                WHERE id = %s AND status = 'pending'
+            """
+            cursor.execute(sql, (student_id,))
+            conn.commit()
+
+            if cursor.rowcount == 0:
+                return jsonify({
+                    "success": False,
+                    "message": "이미 처리되었거나 존재하지 않는 학생입니다."
+                }), 400
+
+        return jsonify({
+            "success": True,
+            "message": "승인되었습니다."
+        }), 200
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({
+            "success": False,
+            "message": "승인 처리 중 오류가 발생했습니다."
+        }), 500
+
+    finally:
+        conn.close()
+
 
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
