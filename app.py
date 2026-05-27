@@ -96,16 +96,17 @@ def login():
                 db_name = user['name']
                 db_phone = user['phone']
                 db_overdue_count = user['overdue_count']
+                db_id = user['id']
 
                 if db_password != password:
                     return jsonify({"message":"비밀번호가 일치하지 않습니다"}),401
                 return jsonify({"message":"로그인 성공"
-                                , "user":{"studentid":studentid,
+                                , "user":{"id" : db_id,
+                                          "studentid":studentid,
                                           "role": db_role,
                                           "name":db_name,
                                           "phone":db_phone,
                                           "overdue_count":db_overdue_count
-
                                           }}),200
         except Exception as e:
             print("db 접속에러 {e}")
@@ -299,6 +300,103 @@ def dashboard_stats():
     finally:
         conn.close()
 
+
+@app.route('/api/items/<int:item_id>/applicants', methods=['GET'])
+def get_item_applicants(item_id):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           SELECT r.id        AS rental_id,
+                                  r.user_id,
+                                  r.item_id,
+                                  r.quantity,
+                                  r.requested_pickup_at,
+                                  r.requested_return_at,
+                                  r.status,
+                                  u.name      AS user_name,
+                                  u.student_number,
+                                  u.phone,
+                                  i.name      AS item_name,
+                                  worker.name AS worker_name,
+                                  u.overdue_count
+                            FROM rentals r
+                            JOIN users u ON r.user_id = u.id
+                            JOIN items i ON r.item_id = i.id
+                            LEFT JOIN work_schedules ws
+                                ON ws.work_date = CASE DAYOFWEEK(r.requested_pickup_at)
+                                    WHEN 2 THEN 'mon'
+                                    WHEN 3 THEN 'tue'
+                                    WHEN 4 THEN 'wed'
+                                    WHEN 5 THEN 'thu'
+                                    WHEN 6 THEN 'fri'
+                                END
+                                AND
+                                TIME (r.requested_pickup_at) >= ws.start_time
+                                AND TIME (r.requested_pickup_at) < ws.end_time
+                           LEFT JOIN users worker
+                           ON ws.admin_id = worker.id
+                           WHERE r.item_id = %s
+                             AND r.status = 'pending'
+                           ORDER BY r.requested_pickup_at ASC
+                           """, (item_id,))
+            rows = cursor.fetchall()
+
+            for row in rows:
+                row["requested_pickup_at"] = row["requested_pickup_at"].strftime("%Y-%m-%d %H:%M")
+                row["requested_return_at"] = row["requested_return_at"].strftime("%Y-%m-%d %H:%M")
+
+        return jsonify(rows), 200
+    finally:
+        conn.close()
+
+
+@app.route('/api/rentals/<int:rental_id>/approve', methods=['POST'])
+def approve_rental(rental_id):
+    data = request.get_json()
+    admin_id = data.get("admin_id")
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                UPDATE rentals
+                SET status = 'approved',
+                    approved_admin_id = %s,
+                    approved_at = NOW()
+                WHERE id = %s
+                AND status = 'pending'
+            """, (admin_id, rental_id))
+
+        conn.commit()
+        return jsonify({"success": True, "message": "예약을 승인했습니다."}), 200
+    except Exception:
+        conn.rollback()
+        return jsonify({"success": False, "message": "예약 승인 중 오류가 발생했습니다."}), 500
+    finally:
+        conn.close()
+
+
+@app.route('/api/rentals/<int:rental_id>/reject', methods=['POST'])
+def reject_rental(rental_id):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                UPDATE rentals
+                SET status = 'rejected',
+                    reject_reason = '관리자 거절'
+                WHERE id = %s
+                AND status = 'pending'
+            """, (rental_id,))
+
+        conn.commit()
+        return jsonify({"success": True, "message": "예약을 거절했습니다."}), 200
+    except Exception:
+        conn.rollback()
+        return jsonify({"success": False, "message": "예약 거절 중 오류가 발생했습니다."}), 500
+    finally:
+        conn.close()
 
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
