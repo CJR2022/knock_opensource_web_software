@@ -1,0 +1,296 @@
+/*기본적으로 긍정적 승인, 같은것들은 검은색 버튼을 이용
+그 외에 끄는창 ( x) 정보확인 취소 처럼 중요도가 낮거나 부정적인거는 흰색사용
+*/
+
+.mulphon-wating {
+    margin-top: 120px;
+    text-align: center;
+    color: var(--color-muted);
+    font-size: 14px;
+}
+
+.mulphon-title {
+    color: var(--color-primary);
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.mulphon-card {
+    box-sizing: border-box;
+}
+
+/*물품 이미지 영역*/
+.mulphonimg-area {
+    width: 100%;
+    height: 170px;
+    margin-bottom: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background-color: white;
+    text-align:center;
+    overflow: hidden;
+}
+
+.mulphon-image {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    margin : auto;
+}
+
+.mulphon-name {
+    margin-bottom: 4px;
+    color: black;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.mulphon-state{
+    margin-top : 4px
+}
+
+/*버튼들 */
+.mulphon-action-button-area{
+    margin-top:10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+}
+
+.mulphon-action-btn {
+    height: 34px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background-color: white;
+    color: black;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.mulphon-action-btn:hover {
+    background-color: black;
+    color: white;
+}
+
+.mulphon-add-btn {
+    height: 38px;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background-color: white;
+    color: black;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 0 12px;
+}
+
+.mulphon-add-btn:hover {
+    background-color: black;
+    color: white;
+}
+
+.mulphon-add-btn span {
+    margin-left: 4px;
+}
+
+.mulphon-add-btn span:first-child {
+    margin-left: 0;
+}
+
+.mulphon-page{
+    margin-bottom: 70px;
+}
+
+.mulphon-panel-title {
+    margin-bottom: 12px;
+    color: black;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.mulphon-panel-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--color-border);
+    border-radius: 50px;
+    background-color: white;
+    color: black;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.mulphon-panel-content {
+    color: #52525b;
+    font-size: 14px;
+}
+
+.mulphon-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 420px;
+    margin-left: -210px;
+    margin-top: -120px;
+    padding: 18px;
+    z-index: 101;
+}
+
+.mulphon-panel:hover {
+    /*기존 card 영향 받아서 추가 */
+    transform: none;
+}
+
+.mulphon-open-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100dvh;
+    background-color: rgba(0, 0, 0, 0.35);
+    z-index: 100;
+}
+
+/* 신청자 확인 */
+.sincheongja-panel {
+    width: 400px;
+    padding: 14px;
+    padding-top: 40px;
+    max-height: 710px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    position: fixed;
+    margin-top: -340px;
+    left: 50%;
+    margin-left: -200px;
+}
+
+
+.sincheongja-panel:hover {
+    /*기존 card 영향 받아서 추가 */
+    transform: none;
+}
+
+.sincheongja-panel .mulphon-panel-close {
+    top: 8px;
+    right: 12px;
+}
+
+.sincheongja-title {
+    margin-bottom: 14px;
+    padding: 18px;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background-color: var(--background);
+}
+
+.sincheongja-title h3 {
+    margin-bottom: 6px;
+    color: black;
+    font-size: 21px;
+    font-weight: bold;
+}
+
+.sincheongja-title p {
+    color: var(--color-muted);
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.sincheongja-list {
+    padding: 12px;
+    border-radius: 14px;
+    background-color: var(--background);
+}
+
+.sincheongja-empty {
+    padding: 36px 0;
+    text-align: center;
+    color: var(--color-muted);
+    font-size: 13px;
+}
+
+
+/* 신청자 카드 -> 여기도 지워져야 하지만 그냥 재활용 함  */
+.sincheongja-card {
+    margin-bottom: 12px;
+    padding: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background-color: white;
+}
+
+.sincheongja-studentid {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.sincheongja-studentid b {
+    display: block;
+    color: black;
+    font-size: 15px;
+}
+
+.sincheongja-studentid p {
+    margin-top: 3px;
+}
+
+.sincheongja-studentid p,
+.sincheongja-studentid span,
+.sincheongja-batgi span,
+.sincheongja-worker span {
+    color: var(--color-muted);
+    font-size: 12px;
+}
+
+.sincheongja-studentid span {
+    font-size: 13px;
+}
+
+.sincheongja-info-list {
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background-color: white;
+}
+
+.sincheongja-batgi,
+.sincheongja-worker {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.sincheongja-worker {
+    border-bottom: none;
+}
+
+.sincheongja-batgi p,
+.sincheongja-worker p {
+    color: black;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+
+/*신청자 대여 관리 css*/
+.sincheongja-studentid .borrower-state {
+    margin-top: 3px;
+    font-size: 12px;
+}
+
+.sincheongja-studentid .borrower-state-go {
+    color: #047857;
+}
+
+.sincheongja-studentid .borrower-state-overdue {
+    color: #be123c;
+}
