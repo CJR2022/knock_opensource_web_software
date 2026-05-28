@@ -213,7 +213,7 @@
 }
 
 
-/* 신청자 카드 */
+/* 신청자 카드 -> 여기도 지워져야 하지만 그냥 재활용 함  */
 .sincheongja-card {
     margin-bottom: 12px;
     padding: 16px;
@@ -280,123 +280,17 @@
     font-weight: bold;
 }
 
-.sincheongja-button-area {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 14px;
-}
 
-.sincheongja-sungin-btn {
-    width: 72px;
-    height: 34px;
-    padding: 0 14px;
-    border: 1px solid black;
-    border-radius: 50px;
+/*신청자 대여 관리 css*/
+.sincheongja-studentid .borrower-state {
+    margin-top: 3px;
     font-size: 12px;
-    cursor: pointer;
 }
 
-.sincheongja-sungin-main,
-.sincheongja-sungin-sub:hover {
-    background-color: black;
-    color: white;
+.sincheongja-studentid .borrower-state-go {
+    color: #047857;
 }
 
-.sincheongja-sungin-sub {
-    background-color: white;
-    color: black;
-}
-
-
-/* 예약승인 && 정보확인 중앙 팝업 */
-.approve-box {
-    position: relative;
-    width: 340px;
-    padding: 20px;
-    border: 1px solid var(--color-border);
-    border-radius: 16px;
-    background-color: white;
-    color: black;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
-}
-
-.approve-box h4 {
-    margin-bottom: 8px;
-    padding-right: 32px;
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.approve-box > p {
-    margin-bottom: 16px;
-    color: var(--color-muted);
-    font-size: 13px;
-}
-
-.approve-info {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--color-border);
-}
-
-.approve-info span {
-    color: var(--color-muted);
-    font-size: 13px;
-}
-
-.approve-info b {
-    color: black;
-    font-size: 13px;
-}
-
-.approve-close {
-    position: absolute;
-    top: 10px;
-    right: 12px;
-    width: 24px;
-    height: 24px;
-    border: 1px solid var(--color-border);
-    border-radius: 50px;
-    background-color: white;
-    cursor: pointer;
-}
-
-.approve-btn-area {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 18px;
-}
-
-.approve-btn {
-    width: 62px;
-    height: 34px;
-    padding: 0 14px;
-    border: 1px solid black;
-    border-radius: 50px;
-    background-color: white;
-    color: black;
-    font-size: 13px;
-    cursor: pointer;
-}
-
-.approve-main,
-.approve-btn:hover {
-    background-color: black;
-    color: white;
-}
-
-.parent-approve{
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 103;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.sincheongja-studentid .borrower-state-overdue {
+    color: #be123c;
 }
