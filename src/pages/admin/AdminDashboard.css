@@ -51,3 +51,39 @@
   color: gray;
   margin-top: 2px;
 }
+
+.dashboard-heatmap .react-calendar-heatmap text {
+  font-size: 8px;
+  fill: gray;
+}
+
+.dashboard-heatmap .react-calendar-heatmap rect {
+  rx: 2;
+  ry: 2;
+}
+
+.dashboard-heatmap .color-empty {
+  fill: #f4f4f5;
+}
+
+.dashboard-heatmap .color-scale-1 {
+  fill: #d4d4d8;
+}
+
+.dashboard-heatmap .color-scale-2 {
+  fill: #71717a;
+}
+
+.dashboard-heatmap .color-scale-3 {
+  fill: #09090b;
+}
+
+.dashboard-heatmap {
+  margin: auto;
+}
+
+.dashboard-heatmap .react-calendar-heatmap-month-label {
+  font-size: 12px;
+  font-weight: 600;
+  fill: #09090b;
+}

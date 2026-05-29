@@ -615,5 +615,23 @@ def today_schedule():
         conn.close()
 
 
+@app.route('/api/dashboard/heatmap', methods=['GET'])
+def dashboard_heatmap():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT DATE(requested_pickup_at) AS date, COUNT(*) AS count
+                FROM rentals
+                WHERE requested_pickup_at >= DATE_SUB(CURDATE(), INTERVAL 2 MONTH)
+                GROUP BY DATE(requested_pickup_at)
+                ORDER BY date ASC
+            """)
+            rows = cursor.fetchall()
+        return jsonify(rows), 200
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     app.run(port=8000, debug=True)

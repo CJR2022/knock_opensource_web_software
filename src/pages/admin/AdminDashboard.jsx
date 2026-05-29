@@ -3,6 +3,8 @@ import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis
 } from "recharts";
+import CalendarHeatmap from "react-calendar-heatmap";
+import "react-calendar-heatmap/dist/styles.css";
 import "./AdminDashboard.css";
 
 const COLORS = ["#09090b", "#71717a", "#a1a1aa", "#d4d4d8", "#e4e4e7"];
@@ -21,6 +23,7 @@ export default function AdminDashboard() {
   const [topItems, setTopItems] = useState([]);
   const [todayPickups, setTodayPickups] = useState([]);
   const [todayReturns, setTodayReturns] = useState([]);
+  const [heatmap, setHeatmap] = useState([]);
 
   useEffect(() => {
     fetch("http://localhost:8000/api/dashboard/kpi")
@@ -46,6 +49,12 @@ export default function AdminDashboard() {
     })
     .catch((err) => console.error("오늘 일정 불러오기 실패: ", err));
   }, []);
+  useEffect(()=>{
+    fetch("http://localhost:8000/api/dashboard/heatmap")
+    .then((res) => res.json())
+    .then((data) => setHeatmap(data))
+    .catch((err) => console.error("히트맵 불러오기 실패: ", err));
+  }, []);
 
   const cards = [
     { label: "대기 중인 대여 요청", key: "pending" },
@@ -54,6 +63,11 @@ export default function AdminDashboard() {
     { label: "현재 대여 중", key: "rented" },
     { label: "연체 건수", key: "overdue" }
   ];
+
+  //히트맵 시작일(현재달-3월의 1일), 종료일(현재)
+  const today = new Date();
+  const heatmapStart = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+  const heatmapEnd = today;
 
   return (
     <div className="page">
@@ -100,39 +114,6 @@ export default function AdminDashboard() {
           )}
         </div>
         <div className="card p-5 lg:col-span-2">
-          <h3 className="dashboard-section-title">대여 히트맵 (2개월)</h3>
-          <div className="dashboard-placeholder">
-            
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div className="card p-5">
-          <h3 className="dashboard-section-title">카테고리별 물품 개수</h3>
-            <ResponsiveContainer height={280}>
-              <PieChart>
-                <Pie
-                  data={categories}
-                  dataKey="count"
-                  nameKey="name"
-                  cx="50%"
-                  cy="45%"
-                  innerRadius="55%"
-                  outerRadius="85%"
-                  stroke="none"
-                >
-                  {categories.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={tooltipStyle} />
-                <Legend verticalAlign="bottom" iconType="circle" />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-        <div className="card p-5">
           <h3 className="dashboard-section-title">인기 대여 물품 Top 5</h3>
           <div className="dashboard-chart">
             <ResponsiveContainer width="100%" height="100%">
@@ -153,6 +134,51 @@ export default function AdminDashboard() {
                 <Bar dataKey="count" fill="#09090b" radius={[6, 6, 0, 0]} barSize={32} />
               </BarChart>
             </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="card p-5">
+          <h3 className="dashboard-section-title">카테고리별 물품 개수</h3>
+            <ResponsiveContainer height={250}>
+              <PieChart>
+                <Pie
+                  data={categories}
+                  dataKey="count"
+                  nameKey="name"
+                  cx="50%"
+                  cy="45%"
+                  innerRadius="55%"
+                  outerRadius="85%"
+                  stroke="none"
+                >
+                  {categories.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={tooltipStyle} />
+                <Legend verticalAlign="bottom" iconType="circle" />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        {/* flex 쓰면 히트맵 사라짐->CalendarHeatmap가 svg형식으로 그리는거라 그렇다함 -> flex-1로 강제 확장하니 보임*/}
+        <div className="card p-5 flex">
+          <div className="dashboard-heatmap flex-1">
+            <CalendarHeatmap
+              startDate={heatmapStart}
+              endDate={heatmapEnd}
+              values={heatmap}
+              gutterSize={2}
+              monthLabels={['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월']}
+              classForValue={(value) => {
+                if (!value || value.count === 0) return "color-empty";
+                if (value.count >= 5) return "color-scale-3";
+                if (value.count >= 2) return "color-scale-2";
+                return "color-scale-1";
+              }}
+    
+            />
           </div>
         </div>
       </div>
