@@ -580,5 +580,40 @@ def get_item_borrowers(item_id):
         conn.close()
 
 
+@app.route('/api/dashboard/today-schedule', methods=['GET'])
+def today_schedule():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT r.id, DATE_FORMAT(r.requested_pickup_at,'%H:%i') AS time, u.name AS user_name, u.student_number, i.name AS item_name, r.quantity
+                FROM rentals r
+                JOIN users u ON r.user_id = u.id
+                JOIN items i ON r.item_id = i.id
+                WHERE DATE(r.requested_pickup_at) = CURDATE()
+                  AND r.status ='approved'
+                ORDER BY r.requested_pickup_at ASC
+            """)
+            pickups = cursor.fetchall()
+
+            cursor.execute("""
+                SELECT r.id, DATE_FORMAT(r.requested_return_at, '%H:%i') AS time, u.name AS user_name, u.student_number, i.name AS item_name, r.quantity
+                FROM rentals r
+                JOIN users u ON r.user_id = u.id
+                JOIN items i ON r.item_id = i.id
+                WHERE DATE(r.requested_return_at) = CURDATE()
+                  AND r.status IN ('approved', 'rented', 'overdue')
+                ORDER BY r.requested_return_at ASC
+            """)
+            returns = cursor.fetchall()
+
+        return jsonify({
+            "pickups": pickups,
+            "returns": returns
+        }), 200
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
