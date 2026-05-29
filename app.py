@@ -23,6 +23,36 @@ def decodeqr(filepath):
         print("qr 디코딩 에러")
         return None
 
+#연체 횟수 공용 함수 rented 상태가
+# check_overdue_rentals(conn)로 상태 확인 필요할떄 한번씩만 호출 하면 어느정도 되지 않을까 싶음
+# 마이페이지나 물품 대여 같은 곳
+def check_overdue_rentals(conn):
+    with conn.cursor() as cursor:
+        cursor.execute("""
+            SELECT id, user_id
+            FROM rentals
+            WHERE status = 'rented'
+              AND requested_return_at < NOW()
+        """)
+        rows = cursor.fetchall()
+
+        for row in rows:
+            cursor.execute("""
+                UPDATE rentals
+                SET status = 'overdue'
+                WHERE id = %s
+                  AND status = 'rented'
+            """, (row["id"],))
+
+            if cursor.rowcount == 1:
+                cursor.execute("""
+                    UPDATE users
+                    SET overdue_count = overdue_count + 1
+                    WHERE id = %s
+                """, (row["user_id"],))
+
+    conn.commit()
+
 
 @app.route('/api/signup', methods=['POST'])
 def signup():
@@ -54,10 +84,10 @@ def signup():
                 if (cursor.fetchone()):
                     return jsonify({"message": "이미 가입된 학생입니다"}), 400
                 insert_sql = """
-                         INSERT INTO users (student_number, password_hash, name, phone, role, status, overdue_count,
-                                            block_period, created_at)
-                         values (%s, %s, %s, %s, 'student', 'pending', 0, NULL, NOW()) 
-                         """
+                             INSERT INTO users (student_number, password_hash, name, phone, role, status, overdue_count,
+                                                block_period, created_at)
+                             values (%s, %s, %s, %s, 'student', 'pending', 0, NULL, NOW()) \
+                             """
                 cursor.execute(insert_sql, (studentid, password, name, phone))
 
             conn.commit()
@@ -74,14 +104,19 @@ def signup():
     except Exception as e:
         print("서버에러")
         return jsonify({"message": "서버에러발생"}), 500
+
+
 @app.route('/api/login', methods=['POST'])
 def login():
+    conn = get_connection()
     try:
+        check_overdue_rentals(conn)
+
         data = request.get_json()
         studentid = data.get("studentid")
         password = data.get("password")
         if not studentid or not password:
-            return jsonify({"message": "학번과 이름을 모두 입력해주세요"}),400
+            return jsonify({"message": "학번과 이름을 모두 입력해주세요"}), 400
         conn = get_connection()
         try:
             with conn.cursor() as cursor:
@@ -95,25 +130,26 @@ def login():
                 db_name = user['name']
                 db_phone = user['phone']
                 db_overdue_count = user['overdue_count']
+                db_id = user['id']
 
                 if db_password != password:
-                    return jsonify({"message":"비밀번호가 일치하지 않습니다"}),401
-                return jsonify({"message":"로그인 성공"
-                                , "user":{"studentid":studentid,
-                                          "role": db_role,
-                                          "name":db_name,
-                                          "phone":db_phone,
-                                          "overdue_count":db_overdue_count
-
-                                          }}),200
+                    return jsonify({"message": "비밀번호가 일치하지 않습니다"}), 401
+                return jsonify({"message": "로그인 성공"
+                                   , "user": {"id": db_id,
+                                              "studentid": studentid,
+                                              "role": db_role,
+                                              "name": db_name,
+                                              "phone": db_phone,
+                                              "overdue_count": db_overdue_count
+                                              }}), 200
         except Exception as e:
             print("db 접속에러 {e}")
-            return jsonify({"message" : "db접속오류"}),500
+            return jsonify({"message": "db접속오류"}), 500
         finally:
             conn.close()
     except Exception as e:
         print("로그인 에러 {e}")
-        return jsonify({"message":"로그인서버오류"}),500
+        return jsonify({"message": "로그인서버오류"}), 500
 
 
 @app.route("/api/users/<int:user_id>/status")
@@ -141,7 +177,6 @@ def user_status(user_id):
 
     finally:
         conn.close()
-
 
 
 @app.route('/api/categories', methods=['GET'])
@@ -218,27 +253,28 @@ def create_inquiry():
     finally:
         conn.close()
 
+
 @app.route('/api/items', methods=['GET'])
 def get_items():
     conn = get_connection()
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT 
-                    i.id,
-                    i.name,
-                    i.category_id,
-                    i.img_url AS image,
-                    i.total_count,
-                    i.preparing_count AS preparing,
-                    COALESCE(SUM(CASE 
-                        WHEN r.status IN ('approved', 'rented', 'overdue') 
-                        THEN r.quantity ELSE 0 
-                    END), 0) AS inUse
-                FROM items i
-                LEFT JOIN rentals r ON r.item_id = i.id
-                GROUP BY i.id
-            """)
+                           SELECT i.id,
+                                  i.name,
+                                  i.category_id,
+                                  i.img_url         AS image,
+                                  i.total_count,
+                                  i.preparing_count AS preparing,
+                                  COALESCE(SUM(CASE
+                                                   WHEN r.status IN ('approved', 'rented', 'overdue')
+                                                       THEN r.quantity
+                                                   ELSE 0
+                                      END), 0)      AS inUse
+                           FROM items i
+                                    LEFT JOIN rentals r ON r.item_id = i.id
+                           GROUP BY i.id
+                           """)
             rows = cursor.fetchall()
             for row in rows:
                 row['available'] = row['total_count'] - row['preparing'] - row['inUse']
@@ -256,7 +292,8 @@ def dashboard_kpi():
             cursor.execute("SELECT COUNT(*) AS total_items FROM items")
             total_items = cursor.fetchone()['total_items']
 
-            cursor.execute("SELECT COALESCE(SUM(quantity), 0) AS rented FROM rentals WHERE status IN ('approved', 'rented', 'overdue')")
+            cursor.execute(
+                "SELECT COALESCE(SUM(quantity), 0) AS rented FROM rentals WHERE status IN ('approved', 'rented', 'overdue')")
             rented = cursor.fetchone()['rented']
 
             cursor.execute("SELECT COUNT(*) AS pending FROM rentals WHERE status = 'pending'")
@@ -285,11 +322,12 @@ def dashboard_stats():
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT c.name, COUNT(i.id) AS count
-                FROM categories c
-                LEFT JOIN items i ON c.id = i.category_id
-                GROUP BY c.id
-            """)
+                           SELECT c.name, COUNT(i.id) AS count
+                           FROM categories c
+                               LEFT JOIN items i
+                           ON c.id = i.category_id
+                           GROUP BY c.id
+                           """)
             categories = cursor.fetchall()
 
             cursor.execute("""
@@ -396,6 +434,148 @@ def approve_student(student_id):
             "message": "승인 처리 중 오류가 발생했습니다."
         }), 500
 
+    finally:
+        conn.close()
+
+
+@app.route('/api/items/<int:item_id>/applicants', methods=['GET'])
+def get_item_applicants(item_id):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           SELECT r.id        AS rental_id,
+                                  r.user_id,
+                                  r.item_id,
+                                  r.quantity,
+                                  r.requested_pickup_at,
+                                  r.requested_return_at,
+                                  r.status,
+                                  u.name      AS user_name,
+                                  u.student_number,
+                                  u.phone,
+                                  i.name      AS item_name,
+                                  worker.name AS worker_name,
+                                  u.overdue_count
+                           FROM rentals r
+                                    JOIN users u ON r.user_id = u.id
+                                    JOIN items i ON r.item_id = i.id
+                                    LEFT JOIN work_schedules ws
+                                              ON ws.work_date = CASE DAYOFWEEK(r.requested_pickup_at)
+                                                                    WHEN 2 THEN 'mon'
+                                                                    WHEN 3 THEN 'tue'
+                                                                    WHEN 4 THEN 'wed'
+                                                                    WHEN 5 THEN 'thu'
+                                                                    WHEN 6 THEN 'fri'
+                                                  END
+                                                  AND
+                               TIME (r.requested_pickup_at) >= ws.start_time
+                               AND TIME (r.requested_pickup_at)
+                              < ws.end_time
+                               LEFT JOIN users worker
+                           ON ws.admin_id = worker.id
+                           WHERE r.item_id = %s
+                             AND r.status = 'pending'
+                           ORDER BY r.requested_pickup_at ASC
+                           """, (item_id,))
+            rows = cursor.fetchall()
+
+            for row in rows:
+                row["requested_pickup_at"] = row["requested_pickup_at"].strftime("%Y-%m-%d %H:%M")
+                row["requested_return_at"] = row["requested_return_at"].strftime("%Y-%m-%d %H:%M")
+
+        return jsonify(rows), 200
+    finally:
+        conn.close()
+
+
+@app.route('/api/rentals/<int:rental_id>/approve', methods=['POST'])
+def approve_rental(rental_id):
+    data = request.get_json()
+    admin_id = data.get("admin_id")
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           UPDATE rentals
+                           SET status            = 'approved',
+                               approved_admin_id = %s,
+                               approved_at       = NOW()
+                           WHERE id = %s
+                             AND status = 'pending'
+                           """, (admin_id, rental_id))
+
+        conn.commit()
+        return jsonify({"success": True, "message": "예약을 승인했습니다."}), 200
+    except Exception:
+        conn.rollback()
+        return jsonify({"success": False, "message": "예약 승인 중 오류가 발생했습니다."}), 500
+    finally:
+        conn.close()
+
+
+@app.route('/api/rentals/<int:rental_id>/reject', methods=['POST'])
+def reject_rental(rental_id):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           UPDATE rentals
+                           SET status        = 'rejected',
+                               reject_reason = '관리자 거절'
+                           WHERE id = %s
+                             AND status = 'pending'
+                           """, (rental_id,))
+
+        conn.commit()
+        return jsonify({"success": True, "message": "예약을 거절했습니다."}), 200
+    except Exception:
+        conn.rollback()
+        return jsonify({"success": False, "message": "예약 거절 중 오류가 발생했습니다."}), 500
+    finally:
+        conn.close()
+
+
+@app.route('/api/items/<int:item_id>/borrowers', methods=['GET'])
+def get_item_borrowers(item_id):
+    conn = get_connection()
+    try:
+        check_overdue_rentals(conn)
+
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           SELECT r.id                                   AS rental_id,
+                                  r.user_id,
+                                  r.item_id,
+                                  r.quantity,
+                                  r.requested_pickup_at,
+                                  r.requested_return_at,
+                                  r.status,
+                                  DATEDIFF(r.requested_return_at, NOW()) AS left_day,
+                                  CASE
+                                      WHEN r.requested_return_at < NOW() THEN 1
+                                      ELSE 0
+                                      END                                AS is_overdue,
+                                  u.name                                 AS user_name,
+                                  u.student_number,
+                                  u.phone,
+                                  u.overdue_count,
+                                  i.name                                 AS item_name
+                           FROM rentals r
+                                    JOIN users u ON r.user_id = u.id
+                                    JOIN items i ON r.item_id = i.id
+                           WHERE r.item_id = %s
+                             AND r.status IN ('approved', 'rented', 'overdue')
+                           ORDER BY r.requested_return_at ASC
+                           """, (item_id,))
+
+            rows = cursor.fetchall()
+            for row in rows:
+                row["requested_pickup_at"] = row["requested_pickup_at"].strftime("%Y-%m-%d %H:%M")
+                row["requested_return_at"] = row["requested_return_at"].strftime("%Y-%m-%d %H:%M")
+
+            return jsonify(rows), 200
     finally:
         conn.close()
 
