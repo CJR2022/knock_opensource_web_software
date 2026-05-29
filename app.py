@@ -289,7 +289,7 @@ def dashboard_kpi():
     conn = get_connection()
     try:
         with conn.cursor() as cursor:
-            cursor.execute("SELECT COUNT(*) AS total_items FROM items")
+            cursor.execute("SELECT SUM(total_count) AS total_items FROM items")
             total_items = cursor.fetchone()['total_items']
 
             cursor.execute(
@@ -302,15 +302,15 @@ def dashboard_kpi():
             cursor.execute("SELECT COUNT(*) AS overdue FROM rentals WHERE status = 'overdue'")
             overdue = cursor.fetchone()['overdue']
 
-            cursor.execute("SELECT COUNT(*) AS active_users FROM users WHERE status = 'active' AND role = 'student'")
-            active_users = cursor.fetchone()['active_users']
+            cursor.execute("SELECT COUNT(*) AS pending_users FROM users WHERE status = 'pending' AND role = 'student'")
+            pending_users = cursor.fetchone()['pending_users']
 
         return jsonify({
             "total_items": total_items,
             "rented": rented,
             "pending": pending,
             "overdue": overdue,
-            "active_users": active_users
+            "pending_users": pending_users
         }), 200
     finally:
         conn.close()

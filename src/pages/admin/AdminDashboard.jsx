@@ -48,11 +48,11 @@ export default function AdminDashboard() {
   }, []);
 
   const cards = [
-    { label: "물품 종류", key: "total_items" },
-    { label: "현재 대여 중", key: "rented" },
     { label: "대기 중인 대여 요청", key: "pending" },
-    { label: "연체 건수", key: "overdue" },
-    { label: "활성화된 사용자", key: "active_users" },
+    { label: "승인대기 가입자", key: "pending_users" },
+    { label: "총 물품 개수", key: "total_items" },
+    { label: "현재 대여 중", key: "rented" },
+    { label: "연체 건수", key: "overdue" }
   ];
 
   return (
@@ -60,7 +60,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-5">
         {cards.map((c) => (
           <div key={c.key} className="card p-5">
-            <div className="text-xs text-[gray] mb-1">{c.label}</div>
+            <div className="dashboard-section-title">{c.label}</div>
             <div className="text-2xl font-bold text-[black]">
               {kpi ? kpi[c.key] : "-"}
             </div>
