@@ -292,8 +292,20 @@ def dashboard_stats():
             """)
             categories = cursor.fetchall()
 
+            cursor.execute("""
+                SELECT items.name, COUNT(rentals.id) AS count
+                FROM items
+                LEFT JOIN rentals ON items.id = rentals.item_id
+                GROUP BY items.id
+                ORDER BY count DESC
+                LIMIT 5
+            """)
+
+            count_item = cursor.fetchall()
+
         return jsonify({
-            "categories": categories
+            "categories": categories,
+            "top_items": count_item
         }), 200
     finally:
         conn.close()

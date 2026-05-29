@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis
 } from "recharts";
 
 const COLORS = ["#09090b", "#71717a", "#a1a1aa", "#d4d4d8", "#e4e4e7"];
@@ -8,6 +9,7 @@ const COLORS = ["#09090b", "#71717a", "#a1a1aa", "#d4d4d8", "#e4e4e7"];
 export default function AdminDashboard() {
   const [kpi, setKpi] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [topItems, setTopItems] = useState([]);
 
   useEffect(() => {
     fetch("http://localhost:8000/api/dashboard/kpi")
@@ -18,8 +20,11 @@ export default function AdminDashboard() {
   useEffect(()=>{
     fetch("http://localhost:8000/api/dashboard/stats")
     .then((res) => res.json())
-    .then((data) => setCategories(data.categories))
-    .catch((err) => console.error("카테고리정보 불러오기 실패: ", err));
+    .then((data) =>{
+       setCategories(data.categories);
+       setTopItems(data.top_items);
+    })
+    .catch((err) => console.error("데이터 불러오기 실패: ", err));
   }, []);
 
   const cards = [
@@ -42,26 +47,39 @@ export default function AdminDashboard() {
           </div>
         ))}
       </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="card p-5">
+            <ResponsiveContainer height={280}>
+              <PieChart>
+                <Pie
+                  data={categories}
+                  dataKey="count"
+                  nameKey="name"
+                  innerRadius="50%"
+                  outerRadius="80%"
+                >
+                  {categories.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend verticalAlign="bottom" height={36} iconType="circle" />
+              </PieChart>
+            </ResponsiveContainer>
+        </div>
 
-      <div className="card p-5 flex flex-col max-w-lg">
-        <div className="flex-1">
-          <ResponsiveContainer width="100%" height={280}>
-            <PieChart>
-              <Pie
-                data={categories}
-                dataKey="count"
-                nameKey="name"
-                innerRadius="50%"
-                outerRadius="80%"
+        <div className="card p-5">
+          <div className="flex-1">
+            <ResponsiveContainer height={280}>
+              <BarChart
+                data={topItems}
               >
-                {categories.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend verticalAlign="bottom" height={36} iconType="circle" />
-            </PieChart>
-          </ResponsiveContainer>
+                <XAxis dataKey="name" tick={{fontSize:14}}/>
+                <YAxis allowDecimals={false}/>
+                <Bar dataKey="count" fill="#eeeeee"/>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
     </div>
