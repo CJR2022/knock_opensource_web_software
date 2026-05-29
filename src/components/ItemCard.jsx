@@ -1,8 +1,24 @@
-export default function ItemCard({ item }) {
+import {useState} from "react";
+import RentalModal from "./RentalModal";
+
+export default function ItemCard({ item, rentservice}) {
   const isAvailable = item.available > 0;
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const handleclick = () =>{
+    let saveduser= sessionStorage.getItem("user");
+    if(!saveduser){
+      saveduser=localStorage.getItem("user");
+    }
+    if (!saveduser){
+      alert("로그인을 해주세요 ");
+      return;
+    }
+    setIsModalOpen(true);
+  }
 
   return (
-    <div className="card flex items-center gap-3 p-3">
+      <>
+        <div className="card flex items-center gap-3 p-3">
       <div className="relative w-20 h-20 shrink-0 overflow-hidden bg-gray-100 rounded-xl">
         <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
       </div>
@@ -26,11 +42,20 @@ export default function ItemCard({ item }) {
       </div>
 
       <button
+          onClick={handleclick}
         disabled={!isAvailable}
         className={`btn shrink-0 ${isAvailable ? "btn-primary" : "btn-disabled"}`}
       >
         {isAvailable ? "대여" : "불가"}
       </button>
     </div>
+    {isModalOpen && (
+      <RentalModal
+      item={item}
+      onClose={()=>setIsModalOpen(false)}
+        onSuccess={rentservice}
+        />
+    )}
+  </>
   );
 }

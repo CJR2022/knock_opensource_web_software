@@ -566,6 +566,51 @@ def get_item_borrowers(item_id):
             return jsonify(rows), 200
     finally:
         conn.close()
+@app.route('/api/work-schedules', methods=['GET'])
+def get_work_schedules():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            sql="SELECT work_date, TIME_FORMAT(start_time, '%H:%i') AS start_time FROM work_schedules"
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+        return jsonify(rows), 200
+    except Exception as e:
+        print(f"근무표 조회 에러: {e}")
+        return jsonify({"message": "근무표 오류"}),500
+    finally:
+        conn.close()
+@app.route('/api/rentals', methods=['POST'])
+def create_rentals():
+    data = request.get_json()
+    user_id = data.get("user_id")
+    item_id = data.get("item_id")
+    quantity = data.get("quantity", 1)
+    pickup=data.get("requested_pickup_at")
+    return_time=data.get("requested_return_at")
+    if not user_id or not item_id or not pickup or not return_time:
+        return jsonify({"message":"시간을 선택해 주세요"}),400
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            check_sql="SELECT status FROM users WHERE id = %s;"
+            cursor.execute(check_sql, (user_id,))
+            user = cursor.fetchone()
+            if user["status"] != "active":
+                return jsonify({"message":"대여 권한이 없습니다(차단 상태)"}),403
+
+            insert_sql="""
+                    INSERT INTO rentals (user_id, item_id, quantity, requested_pickup_at, requested_return_at, status)  
+                    VALUES (%s, %s, %s, %s, %s, 'pending')
+            """
+            cursor.execute(insert_sql, (user_id,item_id,quantity,pickup,return_time))
+        conn.commit()
+        return jsonify({"message":"대여 신청이 완료되었습니다"}),201
+    except Exception:
+        conn.rollback()
+        return jsonify({"message": "대여 신청 중 에러발생"}), 500
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":
