@@ -41,7 +41,7 @@ export default function AdminLayout() {
             </aside>
 
             {/* 메인 콘텐츠 */}
-            <main className="flex-1 admin-content">
+            <main className="flex-1 admin-content pb-15 md:pb-0">
                 <Outlet />
             </main>
 
