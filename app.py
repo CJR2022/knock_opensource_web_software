@@ -11,6 +11,9 @@ CORS(app)
 Uploadfolder = "uploads"
 os.makedirs(Uploadfolder, exist_ok=True)
 
+Itemimagefolder = os.path.join("public", "images")
+os.makedirs(Itemimagefolder, exist_ok=True)
+
 
 def decodeqr(filepath):
     try:
@@ -23,33 +26,34 @@ def decodeqr(filepath):
         print("qr 디코딩 에러")
         return None
 
-#연체 횟수 공용 함수 rented 상태가
+
+# 연체 횟수 공용 함수 rented 상태인데 연체이면은 overdue로 바꾸고 users의 연체를 + 1 시키는 공용 함수
 # check_overdue_rentals(conn)로 상태 확인 필요할떄 한번씩만 호출 하면 어느정도 되지 않을까 싶음
 # 마이페이지나 물품 대여 같은 곳
 def check_overdue_rentals(conn):
     with conn.cursor() as cursor:
         cursor.execute("""
-            SELECT id, user_id
-            FROM rentals
-            WHERE status = 'rented'
-              AND requested_return_at < NOW()
-        """)
+                       SELECT id, user_id
+                       FROM rentals
+                       WHERE status = 'rented'
+                         AND requested_return_at < NOW()
+                       """)
         rows = cursor.fetchall()
 
         for row in rows:
             cursor.execute("""
-                UPDATE rentals
-                SET status = 'overdue'
-                WHERE id = %s
-                  AND status = 'rented'
-            """, (row["id"],))
+                           UPDATE rentals
+                           SET status = 'overdue'
+                           WHERE id = %s
+                             AND status = 'rented'
+                           """, (row["id"],))
 
             if cursor.rowcount == 1:
                 cursor.execute("""
-                    UPDATE users
-                    SET overdue_count = overdue_count + 1
-                    WHERE id = %s
-                """, (row["user_id"],))
+                               UPDATE users
+                               SET overdue_count = overdue_count + 1
+                               WHERE id = %s
+                               """, (row["user_id"],))
 
     conn.commit()
 
@@ -438,104 +442,7 @@ def approve_student(student_id):
         conn.close()
 
 
-@app.route('/api/items/<int:item_id>/applicants', methods=['GET'])
-def get_item_applicants(item_id):
-    conn = get_connection()
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("""
-                           SELECT r.id        AS rental_id,
-                                  r.user_id,
-                                  r.item_id,
-                                  r.quantity,
-                                  r.requested_pickup_at,
-                                  r.requested_return_at,
-                                  r.status,
-                                  u.name      AS user_name,
-                                  u.student_number,
-                                  u.phone,
-                                  i.name      AS item_name,
-                                  worker.name AS worker_name,
-                                  u.overdue_count
-                           FROM rentals r
-                                    JOIN users u ON r.user_id = u.id
-                                    JOIN items i ON r.item_id = i.id
-                                    LEFT JOIN work_schedules ws
-                                              ON ws.work_date = CASE DAYOFWEEK(r.requested_pickup_at)
-                                                                    WHEN 2 THEN 'mon'
-                                                                    WHEN 3 THEN 'tue'
-                                                                    WHEN 4 THEN 'wed'
-                                                                    WHEN 5 THEN 'thu'
-                                                                    WHEN 6 THEN 'fri'
-                                                  END
-                                                  AND
-                               TIME (r.requested_pickup_at) >= ws.start_time
-                               AND TIME (r.requested_pickup_at)
-                              < ws.end_time
-                               LEFT JOIN users worker
-                           ON ws.admin_id = worker.id
-                           WHERE r.item_id = %s
-                             AND r.status = 'pending'
-                           ORDER BY r.requested_pickup_at ASC
-                           """, (item_id,))
-            rows = cursor.fetchall()
-
-            for row in rows:
-                row["requested_pickup_at"] = row["requested_pickup_at"].strftime("%Y-%m-%d %H:%M")
-                row["requested_return_at"] = row["requested_return_at"].strftime("%Y-%m-%d %H:%M")
-
-        return jsonify(rows), 200
-    finally:
-        conn.close()
-
-
-@app.route('/api/rentals/<int:rental_id>/approve', methods=['POST'])
-def approve_rental(rental_id):
-    data = request.get_json()
-    admin_id = data.get("admin_id")
-
-    conn = get_connection()
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("""
-                           UPDATE rentals
-                           SET status            = 'approved',
-                               approved_admin_id = %s,
-                               approved_at       = NOW()
-                           WHERE id = %s
-                             AND status = 'pending'
-                           """, (admin_id, rental_id))
-
-        conn.commit()
-        return jsonify({"success": True, "message": "예약을 승인했습니다."}), 200
-    except Exception:
-        conn.rollback()
-        return jsonify({"success": False, "message": "예약 승인 중 오류가 발생했습니다."}), 500
-    finally:
-        conn.close()
-
-
-@app.route('/api/rentals/<int:rental_id>/reject', methods=['POST'])
-def reject_rental(rental_id):
-    conn = get_connection()
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("""
-                           UPDATE rentals
-                           SET status        = 'rejected',
-                               reject_reason = '관리자 거절'
-                           WHERE id = %s
-                             AND status = 'pending'
-                           """, (rental_id,))
-
-        conn.commit()
-        return jsonify({"success": True, "message": "예약을 거절했습니다."}), 200
-    except Exception:
-        conn.rollback()
-        return jsonify({"success": False, "message": "예약 거절 중 오류가 발생했습니다."}), 500
-    finally:
-        conn.close()
-
+# 기존 신청자 승인하는 api 3개가 있었음 근디 이거 물품관리 바뀌면서 일단 지워둠 로그 남으니깐 필요하면 가져와
 
 @app.route('/api/items/<int:item_id>/borrowers', methods=['GET'])
 def get_item_borrowers(item_id):
@@ -576,6 +483,162 @@ def get_item_borrowers(item_id):
                 row["requested_return_at"] = row["requested_return_at"].strftime("%Y-%m-%d %H:%M")
 
             return jsonify(rows), 200
+    finally:
+        conn.close()
+
+
+# 물품 업데이트, 나말고 사용할 곳이 어디있을지 있나? 물품 대여후에 처리? 필요없을거 같긴함
+@app.route('/api/items/<int:item_id>/update', methods=['POST'])
+def update_item(item_id):
+    name = request.form.get("name")
+    category_id = request.form.get("category_id")
+    total_count = request.form.get("total_count")
+    preparing = request.form.get("preparing")
+    image = request.files.get("image")
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            if image and image.filename != "":
+                filename = str(item_id) + "_" + image.filename
+                filepath = os.path.join(Itemimagefolder, filename)
+                image.save(filepath)
+
+                image_url = "/images/" + filename
+
+                cursor.execute("""
+                               UPDATE items
+                               SET name            = %s,
+                                   category_id     = %s,
+                                   total_count     = %s,
+                                   preparing_count = %s,
+                                   img_url         = %s
+                               WHERE id = %s
+                               """, (name, category_id, total_count, preparing, image_url, item_id))
+            else:
+                cursor.execute("""
+                               UPDATE items
+                               SET name            = %s,
+                                   category_id     = %s,
+                                   total_count     = %s,
+                                   preparing_count = %s
+                               WHERE id = %s
+                               """, (name, category_id, total_count, preparing, item_id))
+
+        conn.commit()
+        return "", 200
+
+    finally:
+        conn.close()
+
+
+# 새 물품 추가하는 api
+@app.route('/api/items/add', methods=['POST'])
+def add_item():
+    name = request.form.get("name")
+    category_id = request.form.get("category_id")
+    total_count = request.form.get("total_count")
+    preparing = request.form.get("preparing")
+    image = request.files.get("image")
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           INSERT INTO items (name, category_id, total_count, preparing_count, img_url)
+                           VALUES (%s, %s, %s, %s, %s)
+                           """, (name, category_id, total_count, preparing, ""))
+
+            item_id = cursor.lastrowid
+
+            if image and image.filename != "":
+                filename = str(item_id) + "_" + image.filename
+                filepath = os.path.join(Itemimagefolder, filename)
+                image.save(filepath)
+
+                image_url = "/images/" + filename
+
+                cursor.execute("""
+                               UPDATE items
+                               SET img_url = %s
+                               WHERE id = %s
+                               """, (image_url, item_id))
+
+        conn.commit()
+        return "", 200
+
+    finally:
+        conn.close()
+
+
+# 물품 삭제 api
+@app.route('/api/items/<int:item_id>/delete', methods=['POST'])
+def delete_item(item_id):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           DELETE
+                           FROM items
+                           WHERE id = %s
+                           """, (item_id,))
+
+        conn.commit()
+        return "", 200
+
+    except Exception:
+        conn.rollback()
+        return "",404
+
+    finally:
+        conn.close()
+
+
+# 물품 전체로그 가져오는 api
+# 물품 전체 로그 api
+@app.route('/api/items/<int:item_id>/logs', methods=['GET'])
+def get_item_logs(item_id):
+    conn = get_connection()
+    try:
+        check_overdue_rentals(conn)
+
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           SELECT r.id   AS rental_id,
+                                  r.user_id,
+                                  r.item_id,
+                                  r.quantity,
+                                  r.requested_pickup_at,
+                                  r.requested_return_at,
+                                  r.status,
+                                  r.created_at,
+                                  u.name AS user_name,
+                                  u.student_number,
+                                  u.phone,
+                                  u.overdue_count,
+                                  i.name AS item_name,
+                                  r.returned_at
+                           FROM rentals r
+                                    JOIN users u ON r.user_id = u.id
+                                    JOIN items i ON r.item_id = i.id
+                           WHERE r.item_id = %s
+                           ORDER BY r.created_at DESC
+                           """, (item_id,))
+
+            rows = cursor.fetchall()
+
+            for row in rows:
+                row["requested_pickup_at"] = row["requested_pickup_at"].strftime("%Y-%m-%d %H:%M")
+                row["requested_return_at"] = row["requested_return_at"].strftime("%Y-%m-%d %H:%M")
+                row["created_at"] = row["created_at"].strftime("%Y-%m-%d %H:%M")
+
+                if row["returned_at"]:
+                    row["returned_at"] = row["returned_at"].strftime("%Y-%m-%d %H:%M")
+                else:
+                    row["returned_at"] = ""
+
+            return jsonify(rows), 200
+
     finally:
         conn.close()
 
