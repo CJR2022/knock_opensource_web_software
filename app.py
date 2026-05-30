@@ -612,6 +612,20 @@ def create_rentals():
     finally:
         conn.close()
 
+@app.route('/api/rentals', methods=['GET'])
+def get_my_rentals():
+    user_id = request.args.get('user_id')
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            sql = "SELECT item_id, status FROM rentals WHERE user_id = %s"
+            cursor.execute(sql, (user_id,))
+            my_rentals = cursor.fetchall()
+        return jsonify(my_rentals), 200
+    except Exception :
+        return jsonify({"message": "데이터베이스 에러"}), 500
+    finally:
+        conn.close()
 
 if __name__ == "__main__":
     app.run(port=8000, debug=True)

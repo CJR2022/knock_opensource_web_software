@@ -4,7 +4,7 @@ import RentalModal from "./RentalModal";
 export default function ItemCard({ item, rentservice}) {
   const isAvailable = item.available > 0;
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const handleclick = () =>{
+  const handleclick = async () =>{
     let saveduser= sessionStorage.getItem("user");
     if(!saveduser){
       saveduser=localStorage.getItem("user");
@@ -13,6 +13,32 @@ export default function ItemCard({ item, rentservice}) {
       alert("로그인을 해주세요 ");
       return;
     }
+    const userInfo = JSON.parse(saveduser);
+    try {
+      const res = await fetch(`http://localhost:8000/api/rentals?user_id=${userInfo.id}`);
+      if (res.ok) {
+        const myRentals = await res.json();
+        const duplicate = myRentals.find(rental =>
+            rental.item_id === item.id && rental.status === "pending");
+
+        if (duplicate) {
+          alert(` 물품을 대여 승인 중이거나 대여중인 상태입니다`);
+          return;
+        }
+        if (!res.ok) {
+          alert("대여 목록 조회 실패");
+          return;
+        }
+      }
+  } catch (error) {
+    console.error("중복 대여 여부 조회 실패:", error);
+  }
+
+
+
+
+
+
     setIsModalOpen(true);
   }
 

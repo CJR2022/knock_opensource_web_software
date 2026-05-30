@@ -166,9 +166,13 @@ export default function RentalModal({item, onClose, onSuccess}) {
                         <div className="flex justify-between border-b border-gray-100 pb-4 mb-4 px-1">
                             {makeWeekArr(rentWeek).map((dayObj, i)=>{
                                 const isSelect = rentDate.toDateString() === dayObj.fullDate.toDateString();
+                                const currentDayTime = compareday(dayObj.fullDate);
+                                const todayTime = compareday(new Date());
+                                const isPast = currentDayTime < todayTime;
                                 return (
                                     <button
                                         key={`rent-${i}`}
+                                        disabled={isPast}
                                         onClick={() => {
                                             setRentDate(dayObj.fullDate);
                                             setRentTime("");
