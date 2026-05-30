@@ -1,4 +1,4 @@
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, Navigate } from "react-router-dom";
 import dashboardIcon from "../../assets/icons/dashboard.svg";
 import inquiryIcon from "../../assets/icons/inquiry.svg";
 import itemIcon from "../../assets/icons/item.svg";
@@ -19,6 +19,13 @@ const menu = [
 
 //NavLink에 쓴 isActive는 라이브러리에서 자체적으로 계산되는 변수임 현재URL이랑 to URL이랑 비교해서 T/F 값 저장
 export default function AdminLayout() {
+    const userStr = localStorage.getItem("user") || sessionStorage.getItem("user");
+    const user = userStr && JSON.parse(userStr);
+    if (user?.role !== "admin") {
+        alert("관리자만 접근 가능합니다.");
+        return <Navigate to="/" replace />;
+    }
+
     return (
         <div className="admin-layout flex flex-col md:flex-row min-h-[100dvh]">
             {/* 데스크탑 사이드바 */}
@@ -41,7 +48,7 @@ export default function AdminLayout() {
             </aside>
 
             {/* 메인 콘텐츠 */}
-            <main className="flex-1 admin-content">
+            <main className="flex-1 admin-content pb-15 md:pb-0">
                 <Outlet />
             </main>
 
