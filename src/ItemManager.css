@@ -27,7 +27,7 @@
     border: 1px solid var(--color-border);
     border-radius: 12px;
     background-color: white;
-    text-align:center;
+    text-align: center;
     overflow: hidden;
 }
 
@@ -35,7 +35,7 @@
     display: block;
     max-width: 100%;
     max-height: 100%;
-    margin : auto;
+    margin: auto;
 }
 
 .mulphon-name {
@@ -45,13 +45,13 @@
     font-weight: bold;
 }
 
-.mulphon-state{
-    margin-top : 4px
+.mulphon-state {
+    margin-top: 4px
 }
 
 /*버튼들 */
-.mulphon-action-button-area{
-    margin-top:10px;
+.mulphon-action-button-area {
+    margin-top: 10px;
     padding-top: 12px;
     border-top: 1px solid var(--color-border);
 }
@@ -77,7 +77,7 @@
     border-radius: 14px;
     background-color: white;
     color: black;
-    font-size: 17px;
+    font-size: 16px;
     font-weight: bold;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -97,17 +97,11 @@
     margin-left: 0;
 }
 
-.mulphon-page{
+.mulphon-page {
     margin-bottom: 70px;
 }
 
-.mulphon-panel-title {
-    margin-bottom: 12px;
-    color: black;
-    font-size: 18px;
-    font-weight: bold;
-}
-
+/*기존 title이랑 content는 UI 동일화 시키게 그냥 하나로 이용 mulphonmode 쪽 mulphon-gwanri-main sincheongja-title로 동일화*/
 .mulphon-panel-close {
     position: absolute;
     top: 12px;
@@ -120,11 +114,6 @@
     color: black;
     font-size: 14px;
     cursor: pointer;
-}
-
-.mulphon-panel-content {
-    color: #52525b;
-    font-size: 14px;
 }
 
 .mulphon-panel {
@@ -204,14 +193,6 @@
     border-radius: 14px;
     background-color: var(--background);
 }
-
-.sincheongja-empty {
-    padding: 36px 0;
-    text-align: center;
-    color: var(--color-muted);
-    font-size: 13px;
-}
-
 
 /* 신청자 카드 -> 여기도 지워져야 하지만 그냥 재활용 함  */
 .sincheongja-card {
@@ -293,4 +274,166 @@
 
 .sincheongja-studentid .borrower-state-overdue {
     color: #be123c;
+}
+
+/*물품 관리 쪽 */
+.mulphon-gwanri-main {
+    width: 450px;
+    margin-left: -225px;
+    margin-top: -340px;
+    max-height: 720px;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.mulphon-gwanri-main::-webkit-scrollbar {
+    display: none;
+}
+
+.mulphon-gwanri-form {
+    padding: 12px;
+    border-radius: 14px;
+    background-color: var(--background);
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.mulphon-gwanri-imgarea {
+    height: 170px;
+    margin-bottom: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background-color: white;
+    text-align: center;
+    overflow: hidden;
+}
+
+.mulphon-gwanri-img {
+    max-width: 100%;
+    max-height: 100%;
+    margin: auto;
+    display: block;
+}
+
+.mulphon-gwanri-div {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.mulphon-gwanri-title {
+    color: black;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.mulphon-gwanri-nayoung,
+.mulphon-gwanri-select {
+    height: 36px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 0 10px;
+    font-size: 13px;
+    background-color: white;
+}
+
+.mulphon-gwanri-filearea {
+    height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mulphon-gwanri-filebtn {
+    width: 78px;
+    height: 34px;
+    border: 1px solid black;
+    border-radius: 10px;
+    background-color: white;
+    color: black;
+    font-size: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.mulphon-gwanri-fileinput {
+    display: none;
+}
+
+.mulphon-gwanri-filename {
+    flex: 1;
+    height: 34px;
+    line-height: 34px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 0 10px;
+    color: var(--color-muted);
+    font-size: 12px;
+    background-color: white;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.mulphon-gwanri-savebtn {
+    width: 100%;
+    height: 38px;
+    margin-top: 8px;
+    border: 1px solid black;
+    border-radius: 50px;
+    background-color: black;
+    color: white;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.mulphon-gwanri-deletearea {
+    text-align: right;
+    margin-top: 2px;
+}
+
+.mulphon-gwanri-deletebtn {
+    width: 82px;
+    height: 30px;
+    border: 1px solid #be123c;
+    border-radius: 50px;
+    background-color: white;
+    color: #be123c;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.mulphon-gwanri-deletebtn:hover {
+    background-color: #be123c;
+    color: white;
+}
+
+/*로그 css*/
+.mulphon-log-searcharea {
+    margin-bottom: 12px;
+    padding: 12px;
+    border-radius: 14px;
+    background-color: var(--background);
+}
+
+.mulphon-log-searchinput {
+    width: 100%;
+    height: 36px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 0 10px;
+    font-size: 13px;
+    background-color: white;
+}
+
+.mulphon-log-empty {
+    padding: 30px 0;
+    text-align: center;
+    color: var(--color-muted);
+    font-size: 13px;
 }
