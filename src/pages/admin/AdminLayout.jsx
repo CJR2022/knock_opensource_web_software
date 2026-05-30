@@ -22,7 +22,7 @@ export default function AdminLayout() {
     const userStr = localStorage.getItem("user") || sessionStorage.getItem("user");
     const user = userStr && JSON.parse(userStr);
     if (user?.role !== "admin") {
-        alert("관리자만 접근 가능합니다.")
+        alert("관리자만 접근 가능합니다.");
         return <Navigate to="/" replace />;
     }
 
