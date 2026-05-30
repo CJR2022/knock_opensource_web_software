@@ -485,6 +485,10 @@ def delete_item(item_id):
         conn.commit()
         return "", 200
 
+    except Exception:
+        conn.rollback()
+        return "",404
+
     finally:
         conn.close()
 

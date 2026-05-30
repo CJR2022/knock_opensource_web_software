@@ -157,6 +157,11 @@ export default function ItemManager() {
     }
 
     function savemulphon() {
+
+        if (mulphoncount === "" || isNaN(Number(mulphoncount)) || mulphon_preparing === "" || isNaN(Number(mulphon_preparing))) {
+            alert("수량은 숫자로 입력해주세요.");
+            return;
+        }
         let dmulphon_data = new FormData();
 
         dmulphon_data.append("name", mulphonname);
@@ -180,6 +185,12 @@ export default function ItemManager() {
 
     /*새 물품 추가*/
     function savenewmulphon() {
+
+        if (mulphoncount === "" || isNaN(Number(mulphoncount)) || mulphon_preparing === "" || isNaN(Number(mulphon_preparing))) {
+            alert("수량은 숫자로 입력해주세요.");
+            return;
+        }
+
         let dmulphon_data = new FormData();
 
         dmulphon_data.append("name", mulphonname);
@@ -220,6 +231,10 @@ export default function ItemManager() {
                     alert("삭제할 수 없는 물품입니다.");
                 }
             })
+            /*catch 추가 */
+        .catch(() => {
+            alert("삭제할 수 없는 물품입니다.");
+        });
     }
 
     /*물품 로그 클릭 이벤트 정리*/
