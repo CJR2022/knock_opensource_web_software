@@ -630,6 +630,109 @@ def get_item_logs(item_id):
     finally:
         conn.close()
 
+# 관리자 문의 목록 가져오기
+@app.route('/api/admin/inquiries', methods=['GET'])
+def get_admin_inquiries():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           SELECT i.id         AS inquiry_id,
+                                  i.user_id,
+                                  u.name       AS user_name,
+                                  u.student_number,
+                                  i.title,
+                                  i.content,
+                                  i.created_at,
+                                  a.id         AS answer_id,
+                                  a.content    AS answer_content,
+                                  a.created_at AS answered_at,
+                                  admin.name   AS admin_name
+                           FROM inquiries i
+                                    JOIN users u ON i.user_id = u.id
+                                    LEFT JOIN inquiry_answers a ON i.id = a.inquiry_id
+                                    LEFT JOIN users admin ON a.admin_id = admin.id
+                           ORDER BY i.created_at DESC
+                           """)
+
+            rows = cursor.fetchall()
+
+            for row in rows:
+                row["created_at"] = row["created_at"].strftime("%Y-%m-%d %H:%M")
+
+                if row["answered_at"]:
+                    row["answered_at"] = row["answered_at"].strftime("%Y-%m-%d %H:%M")
+                else:
+                    row["answered_at"] = ""
+
+        return jsonify(rows), 200
+
+    finally:
+        conn.close()
+
+
+# 관리자 문의 답변 관리 함수
+@app.route('/api/admin/input_inquiries/<int:inquiry_id>/answer', methods=['POST'])
+def save_admin_inquiry_answer(inquiry_id):
+    data = request.get_json()
+
+    admin_id = data.get("admin_id")
+    answer_content = data.get("answer_content")
+
+    if answer_content == "":
+        return jsonify({
+            "success": False,
+            "message": "답변 내용을 입력해주세요."
+        }), 400
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           SELECT id
+                           FROM inquiry_answers
+                           WHERE inquiry_id = %s
+                           """, (inquiry_id,))
+
+            answer = cursor.fetchone()
+
+            if answer:
+                cursor.execute("""
+                               UPDATE inquiry_answers
+                               SET admin_id = %s,
+                                   content = %s,
+                                   created_at = NOW()
+                               WHERE id = %s
+                               """, (admin_id, answer_content, answer["id"]))
+            else:
+                cursor.execute("""
+                               INSERT INTO inquiry_answers (inquiry_id, admin_id, content)
+                               VALUES (%s, %s, %s)
+                               """, (inquiry_id, admin_id, answer_content))
+
+            cursor.execute("""
+                           UPDATE inquiries
+                           SET status = 'answered'
+                           WHERE id = %s
+                           """, (inquiry_id,))
+
+        conn.commit()
+
+        return jsonify({
+            "success": True,
+            "message": "답변이 저장되었습니다."
+        }), 200
+
+    except Exception:
+        conn.rollback()
+
+        return jsonify({
+            "success": False,
+            "message": "답변 저장 중 오류가 발생했습니다."
+        }), 500
+
+    finally:
+        conn.close()
 
 if __name__ == "__main__":
     app.run(port=8000, debug=True)

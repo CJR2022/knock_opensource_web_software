@@ -1,0 +1,236 @@
+.adminmuni-page {
+    padding-bottom: 90px;
+}
+
+
+/* 검색창 부분 */
+.adminmuni-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 14px 16px;
+    border-radius: 50px;
+    background-color: rgb(243, 243, 243);
+}
+
+.adminmuni-search img {
+    width: 18px;
+    height: 18px;
+}
+
+.adminmuni-search-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    outline: none;
+}
+
+
+/* 여기가 답변 대기랑 완료 버튼 css */
+.adminmuni-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.adminmuni-state {
+    padding: 8px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 50px;
+    background-color: white;
+    color: var(--color-muted);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.adminmuni-state-on {
+    background-color: black;
+    color: white;
+}
+
+.adminmuni-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.adminmuni-card {
+    padding: 18px;
+}
+
+.adminmuni-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.adminmuni-card-top b {
+    color: black;
+    font-size: 15px;
+}
+
+.adminmuni-card-top p {
+    margin-top: 3px;
+    color: var(--color-muted);
+    font-size: 12px;
+}
+
+.adminmuni-title {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--color-border);
+    color: black;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.adminmuni-content {
+    height: 44px;
+    color: #52525b;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow: hidden;
+}
+
+.adminmuni-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+}
+
+.adminmuni-bottom span {
+    color: var(--color-muted);
+    font-size: 12px;
+}
+
+.adminmuni-answer-btn {
+    padding: 7px 15px;
+    border: 1px solid black;
+    border-radius: 50px;
+    background-color: white;
+    color: black;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.adminmuni-answer-btn:hover {
+    background-color: black;
+    color: white;
+}
+
+.adminmuni-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100dvh;
+    background-color: rgba(0, 0, 0, 0.35);
+    z-index: 100;
+}
+
+/*일단은 여기를 모바일 중심으로 그냥 노가다 뛰긴했는데
+  translate 써야 될거 같으면 수정하겠음
+*/
+.adminmuni-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 410px;
+    margin-left: -205px;
+    margin-top: -250px;
+    padding: 22px;
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    background-color: white;
+    z-index: 101;
+}
+
+.adminmuni-popup h3 {
+    margin-bottom: 14px;
+    color: black;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.adminmuni-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--color-border);
+    border-radius: 50px;
+    background-color: white;
+    color: black;
+    cursor: pointer;
+}
+
+.adminmuni-question {
+    margin-bottom: 14px;
+    padding: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background-color: var(--background);
+}
+
+.adminmuni-question p {
+    margin-bottom: 8px;
+    color: black;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.adminmuni-question span {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--color-muted);
+    font-size: 12px;
+}
+
+.adminmuni-question div {
+    color: #52525b;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+/* 답변 입력*/
+.adminmuni-textarea {
+    width: 100%;
+    height: 150px;
+    padding: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background-color: white;
+    color: black;
+    font-size: 14px;
+    resize: none;
+    outline: none;
+}
+
+.adminmuni-btnarea {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.adminmuni-btnarea button {
+    padding: 8px 18px;
+    border: 1px solid black;
+    border-radius: 50px;
+    background-color: white;
+    color: black;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.adminmuni-btnarea button:last-child {
+    background-color: black;
+    color: white;
+}
