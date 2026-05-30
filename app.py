@@ -293,7 +293,7 @@ def dashboard_kpi():
     conn = get_connection()
     try:
         with conn.cursor() as cursor:
-            cursor.execute("SELECT COUNT(*) AS total_items FROM items")
+            cursor.execute("SELECT SUM(total_count) AS total_items FROM items")
             total_items = cursor.fetchone()['total_items']
 
             cursor.execute(
@@ -306,15 +306,15 @@ def dashboard_kpi():
             cursor.execute("SELECT COUNT(*) AS overdue FROM rentals WHERE status = 'overdue'")
             overdue = cursor.fetchone()['overdue']
 
-            cursor.execute("SELECT COUNT(*) AS active_users FROM users WHERE status = 'active' AND role = 'student'")
-            active_users = cursor.fetchone()['active_users']
+            cursor.execute("SELECT COUNT(*) AS pending_users FROM users WHERE status = 'pending' AND role = 'student'")
+            pending_users = cursor.fetchone()['pending_users']
 
         return jsonify({
             "total_items": total_items,
             "rented": rented,
             "pending": pending,
             "overdue": overdue,
-            "active_users": active_users
+            "pending_users": pending_users
         }), 200
     finally:
         conn.close()
@@ -334,8 +334,20 @@ def dashboard_stats():
                            """)
             categories = cursor.fetchall()
 
+            cursor.execute("""
+                SELECT items.name, COUNT(rentals.id) AS count
+                FROM items
+                LEFT JOIN rentals ON items.id = rentals.item_id
+                GROUP BY items.id
+                ORDER BY count DESC
+                LIMIT 5
+            """)
+
+            count_item = cursor.fetchall()
+
         return jsonify({
-            "categories": categories
+            "categories": categories,
+            "top_items": count_item
         }), 200
     finally:
         conn.close()
@@ -627,6 +639,59 @@ def get_item_logs(item_id):
 
             return jsonify(rows), 200
 
+    finally:
+        conn.close()
+
+
+@app.route('/api/dashboard/today-schedule', methods=['GET'])
+def today_schedule():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT r.id, DATE_FORMAT(r.requested_pickup_at,'%H:%i') AS time, u.name AS user_name, u.student_number, i.name AS item_name, r.quantity
+                FROM rentals r
+                JOIN users u ON r.user_id = u.id
+                JOIN items i ON r.item_id = i.id
+                WHERE DATE(r.requested_pickup_at) = CURDATE()
+                  AND r.status ='approved'
+                ORDER BY r.requested_pickup_at ASC
+            """)
+            pickups = cursor.fetchall()
+
+            cursor.execute("""
+                SELECT r.id, DATE_FORMAT(r.requested_return_at, '%H:%i') AS time, u.name AS user_name, u.student_number, i.name AS item_name, r.quantity
+                FROM rentals r
+                JOIN users u ON r.user_id = u.id
+                JOIN items i ON r.item_id = i.id
+                WHERE DATE(r.requested_return_at) = CURDATE()
+                  AND r.status IN ('approved', 'rented', 'overdue')
+                ORDER BY r.requested_return_at ASC
+            """)
+            returns = cursor.fetchall()
+
+        return jsonify({
+            "pickups": pickups,
+            "returns": returns
+        }), 200
+    finally:
+        conn.close()
+
+
+@app.route('/api/dashboard/heatmap', methods=['GET'])
+def dashboard_heatmap():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT DATE(requested_pickup_at) AS date, COUNT(*) AS count
+                FROM rentals
+                WHERE requested_pickup_at >= DATE_SUB(CURDATE(), INTERVAL 2 MONTH)
+                GROUP BY DATE(requested_pickup_at)
+                ORDER BY date ASC
+            """)
+            rows = cursor.fetchall()
+        return jsonify(rows), 200
     finally:
         conn.close()
 
