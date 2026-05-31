@@ -28,26 +28,29 @@
 }
 
 
-/* 여기가 답변 대기랑 완료 버튼 css */
+/* 여기가 답변 대기랑 완료 버튼 css
+   사용자 관리쪽 ui 통일하려고 쌔벼 왔습니다
+*/
 .adminmuni-tabs {
     display: flex;
-    gap: 8px;
+    gap: 14px;
     margin-bottom: 16px;
+    border-bottom: 1px solid rgb(214, 214, 214);
 }
 
 .adminmuni-state {
-    padding: 8px 16px;
-    border: 1px solid var(--color-border);
-    border-radius: 50px;
-    background-color: white;
-    color: var(--color-muted);
-    font-size: 13px;
+    padding: 0 6px 8px 6px;
+    border: none;
+    background-color: transparent;
+    color: gray;
+    font-size: 15px;
+    font-weight: 500;
     cursor: pointer;
 }
 
 .adminmuni-state-on {
-    background-color: black;
-    color: white;
+    color: black;
+    border-bottom: 2px solid black;
 }
 
 .adminmuni-list {
@@ -136,6 +139,7 @@
 
 /*일단은 여기를 모바일 중심으로 그냥 노가다 뛰긴했는데
   translate 써야 될거 같으면 수정하겠음
+  수정했으요
 */
 .adminmuni-popup {
     position: fixed;
