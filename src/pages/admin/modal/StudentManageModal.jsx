@@ -55,9 +55,9 @@ export default function StudentManageModal({ student, onClose, onUpdate }) {
   };
   return (
     <>
-        <div className="modal-box">
-            <h3 className="modal-title">{student.name} 학생 관리</h3>
-            <div className="modal-info">
+        <div className="s-modal-box">
+            <h3 className="s-modal-title">{student.name} 학생 관리</h3>
+            <div className="s-modal-info">
             <p>학번: {student.student_number}</p>
             <p>전화번호: {student.phone}</p>
             <p>상태: {student.is_blocked ? "대여 불가" : "대여 가능"}</p>
@@ -65,7 +65,7 @@ export default function StudentManageModal({ student, onClose, onUpdate }) {
                 <p>차단 만료: {student.block_period}</p>
             )}
             </div>
-            <div className="modal-btns">
+            <div className="s-modal-btns">
             {!student.is_blocked ? (
                 <>
                 <button
@@ -107,11 +107,11 @@ export default function StudentManageModal({ student, onClose, onUpdate }) {
                 </button>
             )}
             </div>
-            <button className="modal-close-btn" onClick={onClose}>
+            <button className="s-modal-close-btn" onClick={onClose}>
             닫기
             </button>
         </div>
-        <div className="modal-overlay" onClick={onClose}/>
+        <div className="s-modal-overlay" onClick={onClose}/>
     </>
   );
 }

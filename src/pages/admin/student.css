@@ -213,7 +213,7 @@
     cursor: pointer;
 }
 
-.modal-overlay {
+.s-modal-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.45);
@@ -223,7 +223,7 @@
     justify-content: center;
 }
 
-.modal-box {
+.s-modal-box {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -237,27 +237,27 @@
     z-index: 101;
 }
 
-.modal-title {
+.s-modal-title {
     font-size: 18px;
     font-weight: 700;
     margin-bottom: 16px;
     color: #09090b;
 }
 
-.modal-info p {
+.s-modal-info p {
     font-size: 14px;
     color: #52525b;
     margin-bottom: 6px;
 }
 
-.modal-btns {
+.s-modal-btns {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin-top: 16px;
 }
 
-.btn-block, .btn-unblock, .modal-close-btn {
+.btn-block, .btn-unblock, .s-modal-close-btn {
     padding: 8px 14px;
     border-radius: 999px;
     font-size: 13px;
@@ -285,7 +285,7 @@
     color: #047857;
 }
 
-.modal-close-btn {
+.s-modal-close-btn {
     margin-top: 12px;
     width: 100%;
     background: #f4f4f5;
