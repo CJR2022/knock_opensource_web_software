@@ -4,7 +4,7 @@ import CategorySidebar from "../components/CategorySidebar";
 import ItemGrid from "../components/ItemGrid";
 
 export default function MainPage() {
-  const [categories, setCategories] = useState([{ id: "all", name: "전체" }]);
+  const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,7 +22,7 @@ export default function MainPage() {
       .finally(()=>setIsLoading(false));
   }, []);
 
-  function changeItem(id) {
+  function changeCategory(id) {
     if (id === "all") {
       setSelectedIds([]);
       return;
@@ -44,7 +44,7 @@ export default function MainPage() {
     showItems = items;
   } else {
     for (let i = 0; i < items.length; i++) {
-      if (selectedIds.includes(items[i].id)) {
+      if (selectedIds.includes(items[i].category_id)) {
         showItems.push(items[i]);
       }
     }
@@ -64,9 +64,9 @@ export default function MainPage() {
       <HeroBanner />
       <div className="flex flex-col gap-6">
         <CategorySidebar
-          items={items}
+          categories={categories}
           selectedIds={selectedIds}
-          changeItem={changeItem}
+          changeCategory={changeCategory}
         />
         <section>
           <ItemGrid items={showItems} />
