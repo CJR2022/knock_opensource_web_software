@@ -358,7 +358,7 @@ def dashboard_students():
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT id, student_number, name, phone, created_at
+                SELECT id, student_number, name, phone, DATE_FORMAT(created_at, '%Y/%m/%d') AS created_at
                 FROM users WHERE status = 'pending'
             """)
             new_student = cursor.fetchall()
@@ -373,7 +373,7 @@ def get_active_students():
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT id, student_number, name, phone, overdue_count, status, block_period, created_at
+                SELECT id, student_number, name, phone, overdue_count, status, block_period, DATE_FORMAT(created_at, '%Y/%m/%d') AS created_at
                 FROM users
                 WHERE status IN ('active', 'blocked') AND role = 'student'
             """)
@@ -401,7 +401,8 @@ def get_active_students():
         for s in students:
             s['is_blocked'] = s['status'] == 'blocked'
             s['current_rentals'] = rental_map.get(s['id'], [])
-            del s['block_period']
+            if s['block_period']:
+                s['block_period'] = s['block_period'].strftime('%Y-%m-%d %H:%M:%S')
 
         return jsonify(students), 200
     finally:
@@ -692,6 +693,60 @@ def dashboard_heatmap():
             """)
             rows = cursor.fetchall()
         return jsonify(rows), 200
+    finally:
+        conn.close()
+
+
+@app.route('/api/students/<int:student_id>/block', methods=['POST'])
+def block_student(student_id):
+    data = request.get_json()
+    block_type = data.get("type")
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            #status가 blocked고 block_period가 null이면 영구차단임
+            if block_type == "permanent":
+                cursor.execute("""
+                    UPDATE users
+                    SET status = 'blocked', block_period = NULL
+                    WHERE id = %s
+                """, (student_id,))
+            else:
+                days = int(block_type)
+                cursor.execute("""
+                    UPDATE users
+                    SET status = 'blocked', block_period = DATE_ADD(NOW(), INTERVAL %s DAY)
+                    WHERE id = %s
+                """, (days, student_id))
+            conn.commit()
+
+        return jsonify({"success": True}), 200
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+
+@app.route('/api/students/<int:student_id>/unblock', methods=['POST'])
+def unblock_student(student_id):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                UPDATE users
+                SET status = 'active', block_period = NULL
+                WHERE id = %s
+            """, (student_id,))
+            conn.commit()
+
+        return jsonify({"success": True}), 200
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
     finally:
         conn.close()
 
