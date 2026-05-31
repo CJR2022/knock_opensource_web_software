@@ -498,7 +498,84 @@ def get_item_borrowers(item_id):
             return jsonify(rows), 200
     finally:
         conn.close()
+@app.route('/api/work-schedules', methods=['GET'])
+def get_work_schedules():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            sql="SELECT work_date, TIME_FORMAT(start_time, '%H:%i') AS start_time FROM work_schedules"
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+        return jsonify(rows), 200
+    except Exception as e:
+        print(f"근무표 조회 에러: {e}")
+        return jsonify({"message": "근무표 오류"}),500
+    finally:
+        conn.close()
+@app.route('/api/rentals', methods=['POST'])
+def create_rentals():
+    data = request.get_json()
+    user_id = data.get("user_id")
+    item_id = data.get("item_id")
+    quantity = data.get("quantity", 1)
+    pickup=data.get("requested_pickup_at")
+    return_time=data.get("requested_return_at")
+    if not user_id or not item_id or not pickup or not return_time:
+        return jsonify({"message":"시간을 선택해 주세요"}),400
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            check_sql="SELECT status FROM users WHERE id = %s;"
+            cursor.execute(check_sql, (user_id,))
+            user = cursor.fetchone()
+            if user["status"] != "active":
+                return jsonify({"message":"대여 권한이 없습니다(차단 상태)"}),403
 
+            insert_sql="""
+                    INSERT INTO rentals (user_id, item_id, quantity, requested_pickup_at, requested_return_at, status)  
+                    VALUES (%s, %s, %s, %s, %s, 'pending')
+            """
+            cursor.execute(insert_sql, (user_id,item_id,quantity,pickup,return_time))
+        conn.commit()
+        return jsonify({"message":"대여 신청이 완료되었습니다"}),201
+    except Exception:
+        conn.rollback()
+        return jsonify({"message": "대여 신청 중 에러발생"}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/rentals', methods=['GET'])
+def get_my_rentals():
+    user_id = request.args.get('user_id')
+    conn = get_connection()
+    try:
+        check_overdue_rentals(conn)
+        with conn.cursor() as cursor:
+            sql = """
+                SELECT r.id AS rental_id,
+                       r.item_id,
+                       i.name AS item_name,
+                       DATE_FORMAT(r.requested_pickup_at, '%%Y-%%m-%%d') AS requested_pickup_at,
+                       DATE_FORMAT(r.requested_return_at, '%%Y-%%m-%%d') AS requested_return_at,
+                       r.status
+                FROM rentals r
+                JOIN items i ON r.item_id = i.id
+                WHERE r.user_id = %s
+                ORDER BY r.requested_pickup_at DESC
+            """
+            cursor.execute(sql, (user_id,))
+
+            my_rentals = cursor.fetchall()
+            sql_user = "SELECT overdue_count FROM users WHERE id = %s"
+            cursor.execute(sql_user, (user_id,))
+            user_info = cursor.fetchone()
+            overdue_count = user_info['overdue_count'] if user_info else 0
+
+        return jsonify(my_rentals), 200
+    except Exception :
+        return jsonify({"message": "데이터베이스 에러"}), 500
+    finally:
+        conn.close()
 
 # 물품 업데이트, 나말고 사용할 곳이 어디있을지 있나? 물품 대여후에 처리? 필요없을거 같긴함
 @app.route('/api/items/<int:item_id>/update', methods=['POST'])

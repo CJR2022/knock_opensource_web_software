@@ -1,0 +1,85 @@
+.sectiontitle{
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: var(--color-primary);
+}
+.empty-card{
+  padding: 32px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  color: gray;
+  margin-bottom: 12px;
+}
+.userinfotitle{
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+.userinfo{
+  font-size: 22px;
+  color:black;
+  display: block;
+  margin-top: 4px;
+}
+.userinfo.red{
+  color: red;
+  font-weight: bold;
+}
+
+.rental-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rental-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s;
+}
+.rental-list-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.1);
+  border-color: #d4d4d8;
+}
+.rental-item-info h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 6px;
+}
+.rental-item-info p {
+  font-size: 13px;
+  color: var(--color-muted);
+  margin-top: 4px;
+}
+.rental-item-status .badge {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 9999px;
+  font-weight: 600;
+}
+.rental-item-status .badge-green {
+  background-color: #e8f5e9;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+.rental-item-status .badge-yellow {
+  background-color: #fef9c3;
+  color: #854d0e;
+  border: 1px solid #fef08a;
+}
+.rental-item-status .badge-gray {
+  background-color: #f4f4f5;
+  color: #52525b;
+  border: 1px solid #e4e4e7;
+}

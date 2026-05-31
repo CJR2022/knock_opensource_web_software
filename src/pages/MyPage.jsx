@@ -1,8 +1,46 @@
-import React from "react";
+import { useState, useEffect } from "react";
+import "./MyPage.css";
 
 export default function MyPage() {
     const useString= localStorage.getItem("user")||sessionStorage.getItem("user");
     const user= JSON.parse(useString);
+    const [rentalData, setRentalData] = useState({
+        active: [],
+        pending: [],
+        history: []
+    });
+    const [isLoading, setIsLoading] = useState(true);
+    useEffect(() => {
+        if (!user || !user.id) return;
+        setIsLoading(true);
+        fetch(`http://localhost:8000/api/rentals?user_id=${user.id}`)
+            .then((res) => {
+                console.log(res);
+                return res.json();
+
+            })
+            .then((data) => {
+                const safeData = Array.isArray(data.rentals) ? data.rentals : [];
+                setRentalData({
+                    active: data.filter(item => ['rented', 'approved', 'overdue'].includes(item.status)),
+                    pending: data.filter(item => item.status === 'pending'),
+                    history: data.filter(item => ['returned', 'rejected'].includes(item.status)).slice(0, 2)
+                });
+                if (data.overdue_count !== undefined) {
+                    setOverdueCount(data.overdue_count);
+                    const updatedUser = { ...user, overdue_count: data.overdue_count };
+                    if (localStorage.getItem("user")) localStorage.setItem("user", JSON.stringify(updatedUser));
+                    if (sessionStorage.getItem("user")) sessionStorage.setItem("user", JSON.stringify(updatedUser));
+                }
+
+
+
+            })
+            .catch((err) => {
+                console.log(err);
+            })
+            .finally(() => setIsLoading(false));
+        }, [user?.id]);
 
     const handleLogout = () => {
         localStorage.removeItem("user");
@@ -19,6 +57,44 @@ export default function MyPage() {
             </div>
         );
     }
+    const getStatusUI = (status) => {
+        switch (status) {
+            case 'pending': return { text: '승인 대기', className: 'badge-yellow' };
+            case 'approved': return { text: '승인 완료', className: 'badge-green' };
+            case 'rented': return { text: '대여중', className: 'badge-green' };
+            case 'overdue': return { text: '연체됨', className: 'badge-red' };
+            case 'returned': return { text: '반납 완료', className: 'badge-gray' };
+            case 'rejected': return { text: '거절됨', className: 'badge-red' };
+            default: return { text: status, className: 'badge-gray' };
+
+        }
+    };
+    const renderList = (items, emptyMessage) => {
+        if (isLoading) return <div className="card empty-card">데이터를 불러오는 중입니다</div>;
+        if (items.length === 0) return <div className="card empty-card">{emptyMessage}</div>;
+        return (
+            <div className="rental-list-container">
+                {items.map((item) => {
+                    const statusUI = getStatusUI(item.status);
+                    return (
+                        <div key={item.rental_id} className="rental-list-item">
+                            <div className="rental-item-info">
+                                <h4>{item.item_name}</h4>
+                                <p>신청/대여일 : {item.requested_pickup_at}</p>
+                                <p>반납 (예정)일 : {item.requested_return_at}</p>
+                                </div>
+                            <div className="rental-item-status">
+                                <span className={`badge ${statusUI.className}`}>
+                                    {statusUI.text}
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                })}
+            </div>
+       );
+    };
+
 
     return (
         <div className="app bg-gray-50  pt-10  ph-20">
@@ -54,19 +130,19 @@ export default function MyPage() {
                         </div>
                     </div>
 
-                    <div className="w-full lg:w-2/3" space-y-8>
+                    <div className="w-full lg:w-2/3 space-y-8">
 
                     <section>
                         <h3 className="sectiontitle">대여 물품</h3>
-                        <div className="card empty-card">추후 구현</div>
+                        {renderList(rentalData.active, "현재 대여 중인 물품이 없습니다.")}
                     </section>
                     <section>
                         <h3 className="sectiontitle">대여 신청 현황</h3>
-                        <div className="card empty-card">추후 구현</div>
+                        {renderList(rentalData.pending, "현재 대기 중인 대여 신청이 없습니다.")}
                     </section>
                     <section>
                         <h3 className="sectiontitle">최근 대여 기록</h3>
-                        <div className="card empty-card">추후 구현</div>
+                        {renderList(rentalData.history, "최근 대여 기록이 없습니다.")}
                     </section>
                     <section>
                         <h3 className="sectiontitle">내 문의 사항</h3>
