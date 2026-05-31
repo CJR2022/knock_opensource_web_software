@@ -905,7 +905,8 @@ def unblock_student(student_id):
         conn.close()
 
         
-# 관리자 문의 답변 관리 
+# 관리자 문의 답변 관리 함수
+# 함수 잘못 넣어서 주석 된거 수정
 @app.route('/api/admin/input_inquiries/<int:inquiry_id>/answer', methods=['POST'])
 def save_admin_inquiry_answer(inquiry_id):
     data = request.get_json()
@@ -918,6 +919,11 @@ def save_admin_inquiry_answer(inquiry_id):
             "success": False,
             "message": "답변 내용을 입력해주세요."
         }), 400
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
                            INSERT INTO inquiry_answers (inquiry_id, admin_id, content)
                            VALUES (%s, %s, %s)
                            """, (inquiry_id, admin_id, answer_content))
@@ -945,6 +951,8 @@ def save_admin_inquiry_answer(inquiry_id):
 
     finally:
         conn.close()
+
+
 
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
