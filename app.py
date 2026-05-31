@@ -58,20 +58,6 @@ def check_overdue_rentals(conn):
     conn.commit()
 
 
-#차단 기한 지난 학생 자동 해제
-#block_period가 지났으면 status를 active로, block_period를 NULL로 변경
-def check_block_expired(conn):
-    with conn.cursor() as cursor:
-        cursor.execute("""
-            UPDATE users
-            SET status = 'active', block_period = NULL
-            WHERE status = 'blocked'
-              AND block_period IS NOT NULL
-              AND block_period < NOW()
-        """)
-    conn.commit()
-
-
 @app.route('/api/signup', methods=['POST'])
 def signup():
     try:
@@ -129,7 +115,6 @@ def login():
     conn = get_connection()
     try:
         check_overdue_rentals(conn)
-        check_block_expired(conn)
 
         data = request.get_json()
         studentid = data.get("studentid")
@@ -176,8 +161,6 @@ def user_status(user_id):
     conn = get_connection()
 
     try:
-        check_block_expired(conn)
-
         with conn.cursor() as cursor:
             cursor.execute(
                 "SELECT id, status FROM users WHERE id = %s",
@@ -229,8 +212,6 @@ def create_inquiry():
     conn = get_connection()
 
     try:
-        check_block_expired(conn)
-
         with conn.cursor() as cursor:
             cursor.execute(
                 "SELECT id, status FROM users WHERE id = %s",
@@ -378,9 +359,10 @@ def dashboard_students():
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT id, student_number, name, phone, DATE_FORMAT(created_at, '%Y/%m/%d') AS created_at
-                FROM users WHERE status = 'pending'
-            """)
+                           SELECT id, student_number, name, phone, created_at
+                           FROM users
+                           WHERE status = 'pending'
+                           """)
             new_student = cursor.fetchall()
 
         return jsonify(new_student), 200
@@ -392,14 +374,20 @@ def dashboard_students():
 def get_active_students():
     conn = get_connection()
     try:
-        check_block_expired(conn)
-
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT id, student_number, name, phone, overdue_count, status, block_period, DATE_FORMAT(created_at, '%Y/%m/%d') AS created_at
-                FROM users
-                WHERE status IN ('active', 'blocked') AND role = 'student'
-            """)
+                           SELECT id,
+                                  student_number,
+                                  name,
+                                  phone,
+                                  overdue_count,
+                                  status,
+                                  block_period,
+                                  created_at
+                           FROM users
+                           WHERE status IN ('active', 'blocked')
+                             AND role = 'student'
+                           """)
             students = cursor.fetchall()
 
             cursor.execute("""
@@ -424,8 +412,7 @@ def get_active_students():
         for s in students:
             s['is_blocked'] = s['status'] == 'blocked'
             s['current_rentals'] = rental_map.get(s['id'], [])
-            if s['block_period']:
-                s['block_period'] = s['block_period'].strftime('%Y-%m-%d %H:%M:%S')
+            del s['block_period']
 
         return jsonify(students), 200
     finally:
@@ -475,7 +462,6 @@ def get_item_borrowers(item_id):
     conn = get_connection()
     try:
         check_overdue_rentals(conn)
-        check_block_expired(conn)
 
         with conn.cursor() as cursor:
             cursor.execute("""
@@ -705,7 +691,6 @@ def get_item_logs(item_id):
     conn = get_connection()
     try:
         check_overdue_rentals(conn)
-        check_block_expired(conn)
 
         with conn.cursor() as cursor:
             cursor.execute("""
@@ -752,8 +737,6 @@ def get_item_logs(item_id):
 def today_schedule():
     conn = get_connection()
     try:
-        check_block_expired(conn)
-
         with conn.cursor() as cursor:
             cursor.execute("""
                 SELECT r.id, DATE_FORMAT(r.requested_pickup_at,'%H:%i') AS time, u.name AS user_name, u.student_number, i.name AS item_name, r.quantity
@@ -851,61 +834,8 @@ def get_admin_inquiries():
     finally:
         conn.close()
 
-@app.route('/api/students/<int:student_id>/block', methods=['POST'])
-def block_student(student_id):
-    data = request.get_json()
-    block_type = data.get("type")
 
-    conn = get_connection()
-    try:
-        with conn.cursor() as cursor:
-            #status가 blocked고 block_period가 null이면 영구차단임
-            if block_type == "permanent":
-                cursor.execute("""
-                    UPDATE users
-                    SET status = 'blocked', block_period = NULL
-                    WHERE id = %s
-                """, (student_id,))
-            else:
-                days = int(block_type)
-                cursor.execute("""
-                    UPDATE users
-                    SET status = 'blocked', block_period = DATE_ADD(NOW(), INTERVAL %s DAY)
-                    WHERE id = %s
-                """, (days, student_id))
-            conn.commit()
-
-        return jsonify({"success": True}), 200
-
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"success": False, "message": str(e)}), 500
-    finally:
-        conn.close()
-
-
-@app.route('/api/students/<int:student_id>/unblock', methods=['POST'])
-def unblock_student(student_id):
-    conn = get_connection()
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("""
-                UPDATE users
-                SET status = 'active', block_period = NULL
-                WHERE id = %s
-            """, (student_id,))
-            conn.commit()
-
-        return jsonify({"success": True}), 200
-
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"success": False, "message": str(e)}), 500
-    finally:
-        conn.close()
-
-        
-# 관리자 문의 답변 관리 
+# 관리자 문의 답변 관리 함수
 @app.route('/api/admin/input_inquiries/<int:inquiry_id>/answer', methods=['POST'])
 def save_admin_inquiry_answer(inquiry_id):
     data = request.get_json()
@@ -918,6 +848,11 @@ def save_admin_inquiry_answer(inquiry_id):
             "success": False,
             "message": "답변 내용을 입력해주세요."
         }), 400
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
                            INSERT INTO inquiry_answers (inquiry_id, admin_id, content)
                            VALUES (%s, %s, %s)
                            """, (inquiry_id, admin_id, answer_content))
@@ -945,6 +880,6 @@ def save_admin_inquiry_answer(inquiry_id):
 
     finally:
         conn.close()
-
+       
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
