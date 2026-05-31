@@ -96,8 +96,15 @@ export default function RentalModal({item, onClose, onSuccess}) {
         }
         const userInfo= JSON.parse(savedUser);
         try{
-            const rentStr = rentDate.toISOString().split('T')[0] + " " + rentTime + ":00";
-            const returnStr = returnDate.toISOString().split('T')[0] + " " + returnTime + ":00";
+
+            const getLocalDateString = (dateObj) => {
+                const year = dateObj.getFullYear();
+                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const day = String(dateObj.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            const rentStr = `${getLocalDateString(rentDate)} ${rentTime}:00`;
+            const returnStr = `${getLocalDateString(returnDate)} ${returnTime}:00`;
 
             const res = await fetch('http://localhost:8000/api/rentals', {
                 method: 'POST',

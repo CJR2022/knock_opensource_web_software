@@ -536,10 +536,28 @@ def get_my_rentals():
     user_id = request.args.get('user_id')
     conn = get_connection()
     try:
+        check_overdue_rentals(conn)
         with conn.cursor() as cursor:
-            sql = "SELECT item_id, status FROM rentals WHERE user_id = %s"
+            sql = """
+                SELECT r.id AS rental_id,
+                       r.item_id,
+                       i.name AS item_name,
+                       DATE_FORMAT(r.requested_pickup_at, '%%Y-%%m-%%d') AS requested_pickup_at,
+                       DATE_FORMAT(r.requested_return_at, '%%Y-%%m-%%d') AS requested_return_at,
+                       r.status
+                FROM rentals r
+                JOIN items i ON r.item_id = i.id
+                WHERE r.user_id = %s
+                ORDER BY r.requested_pickup_at DESC
+            """
             cursor.execute(sql, (user_id,))
+
             my_rentals = cursor.fetchall()
+            sql_user = "SELECT overdue_count FROM users WHERE id = %s"
+            cursor.execute(sql_user, (user_id,))
+            user_info = cursor.fetchone()
+            overdue_count = user_info['overdue_count'] if user_info else 0
+
         return jsonify(my_rentals), 200
     except Exception :
         return jsonify({"message": "데이터베이스 에러"}), 500

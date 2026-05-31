@@ -398,36 +398,7 @@ body {
   font-size: 14px;
   font-weight: 500;
 }
-.sectiontitle{
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 12px;
-  color: var(--color-primary);
-}
-.empty-card{
-  padding: 32px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: bold;
-  color: gray;
-  margin-bottom: 12px;
-}
-.userinfotitle{
-  font-size: 16px;
-  font-weight: bold;
-  color: var(--color-muted);
-  line-height: 1.5;
-}
-.userinfo{
-  font-size: 22px;
-  color:black;
-  display: block;
-  margin-top: 4px;
-}
-.userinfo.red{
-  color: red;
-  font-weight: bold;
-}
+
 .week-btn{
   padding: 4px 8px;
   border-radius: 4px;

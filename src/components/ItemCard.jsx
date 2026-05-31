@@ -18,8 +18,10 @@ export default function ItemCard({ item, rentservice}) {
       const res = await fetch(`http://localhost:8000/api/rentals?user_id=${userInfo.id}`);
       if (res.ok) {
         const myRentals = await res.json();
-        const duplicate = myRentals.find(rental =>
-            rental.item_id === item.id && rental.status === "pending");
+        const duplicate = myRentals.find(rental =>{
+            const activeStatuses = ["pending", "approved", "rented", "overdue"];
+        return rental.item_id == item.id && activeStatuses.includes(rental.status);
+        });
 
         if (duplicate) {
           alert(` 물품을 대여 승인 중이거나 대여중인 상태입니다`);
