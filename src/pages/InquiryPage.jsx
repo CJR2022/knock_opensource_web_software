@@ -1,8 +1,10 @@
 import {useEffect, useState} from "react";
 import "../InquiryPage.css";
-
+/*
 const USER_ID = 1;
-/*임시 id 1번 나중에 */
+임시 id 1번 나중에
+수정했음
+*/
 
 const faqList = [
     {
@@ -54,6 +56,11 @@ const faqList = [
 
 
 export default function InquiryPage() { /*로그인 구현시 props로 받고 USER_ID = props.userID; 로 받아오면 될거 같은데 */
+    /*로그인쪽 구현 끝나서 수정*/
+    let userstring = localStorage.getItem("user") || sessionStorage.getItem("user");
+    let user = userstring ? JSON.parse(userstring) : null;
+    let userid = user ? user.id : "";
+
     const [faqorquestion, setfaqorquestion] = useState("faq");
     const [faqSelector, setfaqSelector] = useState(null);
     const [userstatus, setuserstatus] = useState("");
@@ -70,16 +77,19 @@ export default function InquiryPage() { /*로그인 구현시 props로 받고 US
     useEffect(() => {
         window.scrollTo(0, 0);
 
-        fetch(`http://localhost:8000/api/users/${USER_ID}/status`)
-            .then((res) => res.json())
-            .then((data) => {
-                setuserstatus(data.status);
-            });
+        if(userid !== "") {
+            fetch("http://localhost:8000/api/users/" + userid + "/status")
+                .then((res) => res.json())
+                .then((data) => {
+                    setuserstatus(data.status);
+                });
+        }
     }, []);
 
 
     const submitgo = (e) => {
         e.preventDefault();
+
         if (!cansend) {
             alert("회원가입 승인된 학생만 문의를 보낼 수 있습니다.");
             return;
@@ -95,7 +105,7 @@ export default function InquiryPage() { /*로그인 구현시 props로 받고 US
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                user_id: USER_ID,
+                user_id: userid,
                 munititle: munititle,
                 municontent: municontent,
             }),
