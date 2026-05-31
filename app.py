@@ -58,6 +58,20 @@ def check_overdue_rentals(conn):
     conn.commit()
 
 
+#차단 기한 지난 학생 자동 해제
+#block_period가 지났으면 status를 active로, block_period를 NULL로 변경
+def check_block_expired(conn):
+    with conn.cursor() as cursor:
+        cursor.execute("""
+            UPDATE users
+            SET status = 'active', block_period = NULL
+            WHERE status = 'blocked'
+              AND block_period IS NOT NULL
+              AND block_period < NOW()
+        """)
+    conn.commit()
+
+
 @app.route('/api/signup', methods=['POST'])
 def signup():
     try:
@@ -115,6 +129,7 @@ def login():
     conn = get_connection()
     try:
         check_overdue_rentals(conn)
+        check_block_expired(conn)
 
         data = request.get_json()
         studentid = data.get("studentid")
@@ -161,6 +176,8 @@ def user_status(user_id):
     conn = get_connection()
 
     try:
+        check_block_expired(conn)
+
         with conn.cursor() as cursor:
             cursor.execute(
                 "SELECT id, status FROM users WHERE id = %s",
@@ -212,6 +229,8 @@ def create_inquiry():
     conn = get_connection()
 
     try:
+        check_block_expired(conn)
+
         with conn.cursor() as cursor:
             cursor.execute(
                 "SELECT id, status FROM users WHERE id = %s",
@@ -371,6 +390,8 @@ def dashboard_students():
 def get_active_students():
     conn = get_connection()
     try:
+        check_block_expired(conn)
+
         with conn.cursor() as cursor:
             cursor.execute("""
                 SELECT id, student_number, name, phone, overdue_count, status, block_period, DATE_FORMAT(created_at, '%Y/%m/%d') AS created_at
@@ -450,6 +471,7 @@ def get_item_borrowers(item_id):
     conn = get_connection()
     try:
         check_overdue_rentals(conn)
+        check_block_expired(conn)
 
         with conn.cursor() as cursor:
             cursor.execute("""
@@ -602,6 +624,7 @@ def get_item_logs(item_id):
     conn = get_connection()
     try:
         check_overdue_rentals(conn)
+        check_block_expired(conn)
 
         with conn.cursor() as cursor:
             cursor.execute("""
@@ -648,6 +671,8 @@ def get_item_logs(item_id):
 def today_schedule():
     conn = get_connection()
     try:
+        check_block_expired(conn)
+
         with conn.cursor() as cursor:
             cursor.execute("""
                 SELECT r.id, DATE_FORMAT(r.requested_pickup_at,'%H:%i') AS time, u.name AS user_name, u.student_number, i.name AS item_name, r.quantity
