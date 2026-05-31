@@ -1,3 +1,7 @@
+/*수정 사항
+* 1. css 쪽 중앙정렬하게 바꿈
+* 2. 로그를 남길수있게끔 제작
+* */
 import {useEffect, useState} from "react";
 import "../../AdminInquiry.css";
 import searchIcon from "../../assets/icons/search.svg";
@@ -177,12 +181,24 @@ export default function AdminInquiry() {
                 )}
 
                 {!municall && showmunilist.map((muni) => {
-                       /* 작성자 표시 및 답변시간을 위한 부분*/
+                        /* 작성자 표시 및 답변시간을 위한 부분*/
                         let munitime = muni.created_at;
 
                         if (muni.answer_content) {
                             munitime = muni.created_at + " - " + muni.answered_at + " | " + muni.admin_name;
                         }
+
+                        if (muni.answer_content && Number(muni.answer_count) > 1) {
+                            munitime = munitime + " - (수정됨) ";
+                        }
+
+                        /*답변시 변경 */
+                        let munistate_text = "답변대기";
+
+                        if (muni.answer_content) {
+                            munistate_text = "답변완료";
+                        }
+
                         return (
                             <div className="card adminmuni-card" key={muni.inquiry_id}>
                                 <div className="adminmuni-card-top">
@@ -191,9 +207,7 @@ export default function AdminInquiry() {
                                         <p>{muni.student_number}</p>
                                     </div>
 
-                                    <span className={muni.answer_content ? "badge badge-green" : "badge badge-gray"}>
-                                {muni.answer_content ? "답변완료" : "답변대기"}
-                            </span>
+                                    <span className={muni.answer_content ? "badge badge-green" : "badge badge-gray"}> {munistate_text} </span>
                                 </div>
 
                                 <h3 className="adminmuni-title">{muni.title}</h3>

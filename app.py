@@ -128,7 +128,7 @@ def login():
                 cursor.execute(check_sql, (studentid,))
                 user = cursor.fetchone()
                 if not user:
-                    return jsonify({"message": "존재하지 않는 학번입니다"}),404
+                    return jsonify({"message": "존재하지 않는 학번입니다"}), 404
                 db_password = user['password_hash']
                 db_role = user['role']
                 db_name = user['name']
@@ -340,20 +340,23 @@ def dashboard_stats():
     finally:
         conn.close()
 
+
 @app.route('/api/students/pending', methods=['GET'])
 def dashboard_students():
     conn = get_connection()
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT id, student_number, name, phone, created_at
-                FROM users WHERE status = 'pending'
-            """)
+                           SELECT id, student_number, name, phone, created_at
+                           FROM users
+                           WHERE status = 'pending'
+                           """)
             new_student = cursor.fetchall()
-        
+
         return jsonify(new_student), 200
     finally:
         conn.close()
+
 
 @app.route('/api/students/active', methods=['GET'])
 def get_active_students():
@@ -361,18 +364,26 @@ def get_active_students():
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT id, student_number, name, phone, overdue_count, status, block_period, created_at
-                FROM users
-                WHERE status IN ('active', 'blocked') AND role = 'student'
-            """)
+                           SELECT id,
+                                  student_number,
+                                  name,
+                                  phone,
+                                  overdue_count,
+                                  status,
+                                  block_period,
+                                  created_at
+                           FROM users
+                           WHERE status IN ('active', 'blocked')
+                             AND role = 'student'
+                           """)
             students = cursor.fetchall()
 
             cursor.execute("""
-                SELECT r.user_id, i.name AS item_name, r.status, r.quantity
-                FROM rentals r
-                JOIN items i ON r.item_id = i.id
-                WHERE r.status IN ('approved', 'rented', 'overdue')
-            """)
+                           SELECT r.user_id, i.name AS item_name, r.status, r.quantity
+                           FROM rentals r
+                                    JOIN items i ON r.item_id = i.id
+                           WHERE r.status IN ('approved', 'rented', 'overdue')
+                           """)
             rentals = cursor.fetchall()
 
         rental_map = {}
@@ -395,16 +406,18 @@ def get_active_students():
     finally:
         conn.close()
 
+
 @app.route('/api/students/<int:student_id>/approve', methods=['POST'])
 def approve_student(student_id):
     conn = get_connection()
     try:
         with conn.cursor() as cursor:
             sql = """
-                UPDATE users
-                SET status = 'active'
-                WHERE id = %s AND status = 'pending'
-            """
+                  UPDATE users
+                  SET status = 'active'
+                  WHERE id = %s
+                    AND status = 'pending' \
+                  """
             cursor.execute(sql, (student_id,))
             conn.commit()
 
@@ -576,7 +589,7 @@ def delete_item(item_id):
 
     except Exception:
         conn.rollback()
-        return "",404
+        return "", 404
 
     finally:
         conn.close()
@@ -630,6 +643,7 @@ def get_item_logs(item_id):
     finally:
         conn.close()
 
+
 # 관리자 문의 목록 가져오기
 @app.route('/api/admin/inquiries', methods=['GET'])
 def get_admin_inquiries():
@@ -647,11 +661,20 @@ def get_admin_inquiries():
                                   a.id         AS answer_id,
                                   a.content    AS answer_content,
                                   a.created_at AS answered_at,
-                                  admin.name   AS admin_name
+                                  admin.name   AS admin_name, 
+                                  (SELECT COUNT(*) FROM inquiry_answers ia_count
+                                   WHERE ia_count.inquiry_id = i.id
+                                  ) AS answer_count 
                            FROM inquiries i
                                     JOIN users u ON i.user_id = u.id
-                                    LEFT JOIN inquiry_answers a ON i.id = a.inquiry_id
-                                    LEFT JOIN users admin ON a.admin_id = admin.id
+                                    LEFT JOIN inquiry_answers a
+                                              ON a.id = (
+                                                  SELECT ia.id
+                                                  FROM inquiry_answers ia
+                                                  WHERE ia.inquiry_id = i.id
+                                                  ORDER BY ia.created_at DESC, ia.id DESC LIMIT 1
+                               )
+                        LEFT JOIN users admin ON a.admin_id = admin.id
                            ORDER BY i.created_at DESC
                            """)
 
@@ -689,26 +712,9 @@ def save_admin_inquiry_answer(inquiry_id):
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                           SELECT id
-                           FROM inquiry_answers
-                           WHERE inquiry_id = %s
-                           """, (inquiry_id,))
-
-            answer = cursor.fetchone()
-
-            if answer:
-                cursor.execute("""
-                               UPDATE inquiry_answers
-                               SET admin_id = %s,
-                                   content = %s,
-                                   created_at = NOW()
-                               WHERE id = %s
-                               """, (admin_id, answer_content, answer["id"]))
-            else:
-                cursor.execute("""
-                               INSERT INTO inquiry_answers (inquiry_id, admin_id, content)
-                               VALUES (%s, %s, %s)
-                               """, (inquiry_id, admin_id, answer_content))
+                           INSERT INTO inquiry_answers (inquiry_id, admin_id, content)
+                           VALUES (%s, %s, %s)
+                           """, (inquiry_id, admin_id, answer_content))
 
             cursor.execute("""
                            UPDATE inquiries
@@ -733,6 +739,7 @@ def save_admin_inquiry_answer(inquiry_id):
 
     finally:
         conn.close()
+
 
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
