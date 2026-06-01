@@ -60,7 +60,9 @@ export default function RentalManager() {
                 if (res.ok) {
                     getrentallist();
                 } else {
-                    alert("예약 승인을 처리할 수 없습니다.");
+                    res.json().then((data) => {
+                        alert(data.message);
+                    });
                 }
             });
     }
@@ -98,7 +100,12 @@ export default function RentalManager() {
         return datetime.substring(11, 16);
     }
 
+    /*여기가 기간별 어떻게 할건지여서 여기에 cancelled 추가*/
     function show_gigan_state(rental) {
+        if (rental.status === "rejected" || rental.status === "canceled") {
+        return "-";
+        }
+        
         if (rental.status === "approved") {
             return "수령 예정";
         }
@@ -208,6 +215,7 @@ export default function RentalManager() {
             });
     }
 
+    /*드디어 rental_reject를 만든 이유를 꺠달았다 는 아니고 그냥 예약 거절 때린 관리자 찾는 로그로 두면 괜찮을듯? */
     function reject_rental(rentalid) {
         if (!window.confirm("예약을 거절하겠습니까?")) {
             return;
@@ -215,6 +223,12 @@ export default function RentalManager() {
 
         fetch("http://localhost:8000/api/admin/rentals/" + rentalid + "/reject", {
             method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                admin_id: user.id,
+            })
         })
             .then((res) => {
                 if (res.ok) {
