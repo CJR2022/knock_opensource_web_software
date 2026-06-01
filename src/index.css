@@ -246,6 +246,17 @@ body {
 .category-btn:active{
   transform: scale(0.95);
 }
+
+.main-card-img{
+  align-items:center;
+  justify-content: center;
+  height: 250px;
+  border: solid 1px var(--color-border);
+  margin: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
 .logintemp{
   position: fixed;
   top: 0;
