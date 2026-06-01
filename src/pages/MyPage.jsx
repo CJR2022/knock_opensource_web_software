@@ -198,14 +198,12 @@ export default function MyPage() {
                         </section>
                         <section>
                             <h3 className="sectiontitle">내 문의 사항</h3>
-                            {/* 새로 구현한 함수 적용 */}
                             {renderInquiryList()}
                         </section>
                     </div>
                 </div>
             </div>
 
-            {/* 팝업 렌더링 위치 */}
             {inquiryPopup}
         </div>
     );
