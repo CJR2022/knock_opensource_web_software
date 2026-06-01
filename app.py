@@ -1095,5 +1095,37 @@ def get_public_closed_days():
         return jsonify({"message": "서버 오류"}), 500
     finally:
         conn.close()
+
+
+@app.route('/api/users/<int:user_id>/inquiries', methods=['GET'])
+def get_user_inquiries(user_id):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           SELECT i.id,
+                                  i.title,
+                                  i.content,
+                                  i.status,
+                                  DATE_FORMAT(i.created_at, '%%Y-%%m-%%d %%H:%%i') AS created_at,
+                                  a.content                                        AS answer_content,
+                                  DATE_FORMAT(a.created_at, '%%Y-%%m-%%d %%H:%%i') AS answered_at
+                           FROM inquiries i
+                                    LEFT JOIN inquiry_answers a ON a.id = (SELECT ia.id
+                                                                           FROM inquiry_answers ia
+                                                                           WHERE ia.inquiry_id = i.id
+                                                                           ORDER BY ia.created_at DESC, ia.id
+                                                                                                  DESC LIMIT 1
+                               )
+                           WHERE i.user_id = %s
+                           ORDER BY i.created_at DESC
+                           """, (user_id,))
+            rows = cursor.fetchall()
+        return jsonify(rows), 200
+
+    except Exception as e:
+        return jsonify({"message": "문의 내역을 불러오는 중 에러가 발생했습니다."}), 500
+    finally:
+        conn.close()
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
