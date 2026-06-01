@@ -4,7 +4,7 @@ from flask_cors import CORS
 from db import get_connection
 import cv2
 from pyzbar.pyzbar import decode
-
+from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 CORS(app)
 
@@ -79,6 +79,7 @@ def signup():
         studentid = request.form.get('studentid')
         password = request.form.get('password')
         phone = request.form.get('phone')
+        hashed_password = generate_password_hash(password)
 
         file = request.files['qrimage']
         filename = file.filename
@@ -106,7 +107,7 @@ def signup():
                                                 block_period, created_at)
                              values (%s, %s, %s, %s, 'student', 'pending', 0, NULL, NOW()) \
                              """
-                cursor.execute(insert_sql, (studentid, password, name, phone))
+                cursor.execute(insert_sql, (studentid, hashed_password, name, phone))
 
             conn.commit()
             print("db 저장됨")
@@ -151,7 +152,7 @@ def login():
                 db_overdue_count = user['overdue_count']
                 db_id = user['id']
 
-                if db_password != password:
+                if not check_password_hash(db_password, password):
                     return jsonify({"message": "비밀번호가 일치하지 않습니다"}), 401
                 return jsonify({"message": "로그인 성공"
                                    , "user": {"id": db_id,
