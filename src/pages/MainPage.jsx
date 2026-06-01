@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import HeroBanner from "../components/HeroBanner";
 import CategorySidebar from "../components/CategorySidebar";
 import ItemGrid from "../components/ItemGrid";
+import searchIcon from "../assets/icons/search.svg";
 
 export default function MainPage() {
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [input, setInput] = useState("");
 
   useEffect(() => {
     fetch("http://localhost:8000/api/categories")
@@ -62,14 +64,18 @@ export default function MainPage() {
   return (
     <main className="page">
       <HeroBanner />
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-2">
+        <label className="searchBar p-4">
+          <img src={searchIcon} alt="검색" className="w-4 h-4 mr-2 mb-1"/>
+          <input type="text" className="search" placeholder="물품의 이름을 입력하여 검색" onChange={(e)=>setInput(e.target.value)} ></input>
+        </label>
         <CategorySidebar
           categories={categories}
           selectedIds={selectedIds}
           changeCategory={changeCategory}
         />
         <section>
-          <ItemGrid items={showItems} />
+          <ItemGrid items={showItems} searchKeyword={input}/>
         </section>
       </div>
     </main>
