@@ -49,6 +49,7 @@ git clone https://github.com/CJR2022/knock_opensource_web_software.git
 https://github.com/CJR2022/knock_opensource_web_software/releases/tag/DB_preview
 ```
 ```env
+# db.py와 같은 폴더 위치에 .env 파일 생성 후 아래 내용 작성
 DB_HOST=localhost
 DB_PORT=3306
 DB_USERNAME=root
