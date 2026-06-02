@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 
 const tabs = [
   { id: "main", label: "메인", href: "/" },
+  { id: "items", label: "물품대여", href: "/items" },
   { id: "inquiry", label: "문의사항", href: "/inquiry" },
   { id: "admin", label: "관리자", href: "/admin" },
 ];
@@ -42,7 +43,7 @@ export default function Header() {
         </div>
         <div className="header-right">
           {user ?(
-              <Link to="/mypage" className="btn btn-primary inline-block text-center pt-2">
+              <Link to="/myPage" className="btn btn-primary inline-block text-center pt-2">
             마이 페이지
           </Link>
 

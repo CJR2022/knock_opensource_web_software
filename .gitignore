@@ -15,6 +15,7 @@ dist-ssr
 .venv
 __pycache__/
 *.pyc
+activity_img_sync.txt
 
 # Editor directories and files
 .vscode/*

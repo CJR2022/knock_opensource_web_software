@@ -12,15 +12,16 @@ import InquiryPage from "./pages/InquiryPage";
 import MyPage from "./pages/MyPage";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
+import LandingPage from "./pages/LandingPage";
 
-
-
+/*Landing이 먼저 나오게 수정*/
 export default function App() {
   return (
     <div className="app">
       <Header />
       <Routes>
-        <Route path="/" element={<MainPage />} />
+        <Route path="/" element={<LandingPage  />} />
+        <Route path="/items" element={<MainPage />} />
         <Route path="/inquiry" element={<InquiryPage />}/>
         <Route path="/myPage" element={<MyPage />}/>
         <Route path="/login" element={<LoginPage />}/>
