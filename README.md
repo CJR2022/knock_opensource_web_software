@@ -44,7 +44,10 @@ git clone https://github.com/CJR2022/knock_opensource_web_software.git
 ```
 
 ### .env 설정(localhost)
-`mysql DB import 필요`
+`mysql DB import 필요` 
+```
+https://github.com/CJR2022/knock_opensource_web_software/releases/tag/DB_preview
+```
 ```env
 DB_HOST=localhost
 DB_PORT=3306
