@@ -73,11 +73,11 @@ export default function MainPage() {
     <main className="page">
       <HeroBanner />
       <div className="flex flex-col">
-        <label className="searchBar p-4">
+        <label className="main-searchBar p-3">
           <img src={searchIcon} alt="검색" className="w-4 h-4 mr-2 mb-1" />
           <input
             type="text"
-            className="search"
+            className="main-search"
             placeholder="어떤 물품이 필요하세요? (ex. 우산, 보조배터리)"
             onChange={(e)=>setInput(e.target.value)}
           />

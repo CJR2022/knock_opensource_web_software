@@ -73,7 +73,7 @@ export default function ItemCard({ item, rentservice}) {
               disabled={!isAvailable}
               className={`btn w-full ${isAvailable ? "btn-primary" : "btn-disabled"}`}
             >
-                {isAvailable ? "대여하기" : "대여불가"}
+                {isAvailable ? "대여신청" : "대여불가"}
             </button>
           </div>
         </div>
