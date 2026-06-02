@@ -5,6 +5,7 @@
 import {useEffect, useState} from "react";
 import "../../AdminInquiry.css";
 import searchIcon from "../../assets/icons/search.svg";
+import alert2 from "sweetalert2";
 
 export default function AdminInquiry() {
     const [munilist, setmunilist] = useState([]);
@@ -59,12 +60,30 @@ export default function AdminInquiry() {
         let user = userstring ? JSON.parse(userstring) : null;
 
         if (!user || !user.id) {
-            alert("로그인 정보가 없습니다.");
+            alert2.fire({
+                text: "로그인 정보가 없습니다.",
+                confirmButtonText: "확인",
+                confirmButtonColor: "#09090b",
+                customClass: {
+                    title: "custom-popup-title",
+                    htmlContainer: "custom-popup-content",
+                    confirmButton: "custom-confirm"
+                }
+            });
             return;
         }
 
         if (answercontent === "") {
-            alert("답변 내용을 입력해주세요.");
+            alert2.fire({
+                text: "답변 내용을 입력해주세요.",
+                confirmButtonText: "확인",
+                confirmButtonColor: "#09090b",
+                customClass: {
+                    title: "custom-popup-title",
+                    htmlContainer: "custom-popup-content",
+                    confirmButton: "custom-confirm"
+                }
+            });
             return;
         }
 
@@ -80,12 +99,21 @@ export default function AdminInquiry() {
         })
             .then((res) => res.json())
             .then((data) => {
-                alert(data.message);
-
-                if (data.success) {
-                    closeanswer();
-                    getmunilist();
-                }
+                alert2.fire({
+                    text: data.message,
+                    confirmButtonText: "확인",
+                    confirmButtonColor: "#09090b",
+                    customClass: {
+                        title: "custom-popup-title",
+                        htmlContainer: "custom-popup-content",
+                        confirmButton: "custom-confirm"
+                    }
+                }).then(() => {
+                    if (data.success) {
+                        closeanswer();
+                        getmunilist();
+                    }
+                });
             });
     }
 
@@ -207,7 +235,8 @@ export default function AdminInquiry() {
                                         <p>{muni.student_number}</p>
                                     </div>
 
-                                    <span className={muni.answer_content ? "badge badge-green" : "badge badge-gray"}> {munistate_text} </span>
+                                    <span
+                                        className={muni.answer_content ? "badge badge-green" : "badge badge-gray"}> {munistate_text} </span>
                                 </div>
 
                                 <h3 className="adminmuni-title">{muni.title}</h3>

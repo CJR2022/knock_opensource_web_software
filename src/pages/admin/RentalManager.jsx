@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import "../../RentalManager.css";
 import searchIcon from "../../assets/icons/search.svg";
+import alert2 from "sweetalert2";
 
 export default function RentalManager() {
     const [rental_list, setrental_list] = useState([]);
@@ -39,32 +40,65 @@ export default function RentalManager() {
 
     function approve_rental(rentalid) {
         if (!user || !user.id) {
-            alert("로그인 정보가 없습니다.");
-            return;
-        }
-
-        if (!window.confirm("예약을 승인할까요?")) {
-            return;
-        }
-
-        fetch("http://localhost:8000/api/admin/rentals/" + rentalid + "/approve", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                admin_id: user.id,
-            }),
-        })
-            .then((res) => {
-                if (res.ok) {
-                    getrentallist();
-                } else {
-                    res.json().then((data) => {
-                        alert(data.message);
-                    });
+            alert2.fire({
+                text: "로그인 정보가 없습니다.",
+                confirmButtonText: "확인",
+                confirmButtonColor: "#09090b",
+                customClass: {
+                    title: "custom-popup-title",
+                    htmlContainer: "custom-popup-content",
+                    confirmButton: "custom-confirm"
                 }
             });
+            return;
+        }
+
+        alert2.fire({
+            text: "예약을 승인할까요?",
+            showCancelButton: true,
+            confirmButtonText: "확인",
+            cancelButtonText: "취소",
+            confirmButtonColor: "#09090b",
+            cancelButtonColor: "#71717a",
+            customClass: {
+                title: "custom-popup-title",
+                htmlContainer: "custom-popup-content",
+                confirmButton: "custom-confirm",
+                cancelButton: "custom-cancel"
+            }
+        }).then((result) => {
+            if (!result.isConfirmed) {
+                return;
+            }
+
+            fetch("http://localhost:8000/api/admin/rentals/" + rentalid + "/approve", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    admin_id: user.id,
+                }),
+            })
+                .then((res) => {
+                    if (res.ok) {
+                        getrentallist();
+                    } else {
+                        res.json().then((data) => {
+                            alert2.fire({
+                                text: data.message,
+                                confirmButtonText: "확인",
+                                confirmButtonColor: "#09090b",
+                                customClass: {
+                                    title: "custom-popup-title",
+                                    htmlContainer: "custom-popup-content",
+                                    confirmButton: "custom-confirm"
+                                }
+                            });
+                        });
+                    }
+                });
+        });
     }
 
     function getcategory() {
@@ -103,9 +137,9 @@ export default function RentalManager() {
     /*여기가 기간별 어떻게 할건지여서 여기에 cancelled 추가*/
     function show_gigan_state(rental) {
         if (rental.status === "rejected" || rental.status === "canceled") {
-        return "-";
+            return "-";
         }
-        
+
         if (rental.status === "approved") {
             return "수령 예정";
         }
@@ -165,78 +199,159 @@ export default function RentalManager() {
     }
 
     function batgi_check(rentalid) {
-        if (!window.confirm("대여 물품을 수령했습니까?")) {
-            return;
-        }
+        alert2.fire({
+            text: "대여 물품을 수령했습니까?",
+            showCancelButton: true,
+            confirmButtonText: "확인",
+            cancelButtonText: "취소",
+            confirmButtonColor: "#09090b",
+            cancelButtonColor: "#71717a",
+            customClass: {
+                title: "custom-popup-title",
+                htmlContainer: "custom-popup-content",
+                confirmButton: "custom-confirm",
+                cancelButton: "custom-cancel"
+            }
+        }).then((result) => {
+            if (!result.isConfirmed) {
+                return;
+            }
 
-        fetch("http://localhost:8000/api/admin/rentals/" + rentalid + "/rent", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                admin_id: userid,
+            fetch("http://localhost:8000/api/admin/rentals/" + rentalid + "/rent", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    admin_id: userid,
+                })
             })
-        })
-            .then((res) => {
-                if (res.ok) {
-                    getrentallist();
-                } else {
-                    alert("수령 확인을 처리할 수 없습니다.");
-                }
-            });
+                .then((res) => {
+                    if (res.ok) {
+                        getrentallist();
+                    } else {
+                        alert2.fire({
+                            text: "수령 확인을 처리할 수 없습니다.",
+                            confirmButtonText: "확인",
+                            confirmButtonColor: "#09090b",
+                            customClass: {
+                                title: "custom-popup-title",
+                                htmlContainer: "custom-popup-content",
+                                confirmButton: "custom-confirm"
+                            }
+                        });
+                    }
+                });
+        });
     }
 
     function bannap_check(rentalid) {
         if (!user || !user.id) {
-            alert("로그인 정보가 없습니다.");
-            return;
-        }
-
-        if (!window.confirm("반납 확인 처리할까요?")) {
-            return;
-        }
-
-        fetch("http://localhost:8000/api/admin/rentals/" + rentalid + "/return", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                admin_id: user.id,
-            }),
-        })
-            .then((res) => {
-                if (res.ok) {
-                    getrentallist();
-                } else {
-                    alert("반납 확인을 처리할 수 없습니다.");
+            alert2.fire({
+                text: "로그인 정보가 없습니다.",
+                confirmButtonText: "확인",
+                confirmButtonColor: "#09090b",
+                customClass: {
+                    title: "custom-popup-title",
+                    htmlContainer: "custom-popup-content",
+                    confirmButton: "custom-confirm"
                 }
             });
+            return;
+        }
+
+        alert2.fire({
+            text: "반납 확인 처리할까요?",
+            showCancelButton: true,
+            confirmButtonText: "확인",
+            cancelButtonText: "취소",
+            confirmButtonColor: "#09090b",
+            cancelButtonColor: "#71717a",
+            customClass: {
+                title: "custom-popup-title",
+                htmlContainer: "custom-popup-content",
+                confirmButton: "custom-confirm",
+                cancelButton: "custom-cancel"
+            }
+        }).then((result) => {
+            if (!result.isConfirmed) {
+                return;
+            }
+
+            fetch("http://localhost:8000/api/admin/rentals/" + rentalid + "/return", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    admin_id: user.id,
+                }),
+            })
+                .then((res) => {
+                    if (res.ok) {
+                        getrentallist();
+                    } else {
+                        alert2.fire({
+                            text: "반납 확인을 처리할 수 없습니다.",
+                            confirmButtonText: "확인",
+                            confirmButtonColor: "#09090b",
+                            customClass: {
+                                title: "custom-popup-title",
+                                htmlContainer: "custom-popup-content",
+                                confirmButton: "custom-confirm"
+                            }
+                        });
+                    }
+                });
+        });
     }
 
-    /*드디어 rental_reject를 만든 이유를 꺠달았다 는 아니고 그냥 예약 거절 때린 관리자 찾는 로그로 두면 괜찮을듯? */
+    /*드디어 rental_reject 존재의의를 꺠달았다 는 아니고 그냥 예약 거절 때린 관리자 찾는 로그로 두면 괜찮을듯? */
     function reject_rental(rentalid) {
-        if (!window.confirm("예약을 거절하겠습니까?")) {
-            return;
-        }
+        alert2.fire({
+            text: "예약을 거절하겠습니까?",
+            showCancelButton: true,
+            confirmButtonText: "거절",
+            cancelButtonText: "취소",
+            confirmButtonColor: "#be123c",
+            cancelButtonColor: "#71717a",
+            customClass: {
+                title: "custom-popup-title",
+                htmlContainer: "custom-popup-content",
+                confirmButton: "custom-confirm",
+                cancelButton: "custom-cancel"
+            }
+        }).then((result) => {
+            if (!result.isConfirmed) {
+                return;
+            }
 
-        fetch("http://localhost:8000/api/admin/rentals/" + rentalid + "/reject", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                admin_id: user.id,
+            fetch("http://localhost:8000/api/admin/rentals/" + rentalid + "/reject", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    admin_id: user.id,
+                })
             })
-        })
-            .then((res) => {
-                if (res.ok) {
-                    getrentallist();
-                } else {
-                    alert("예약 거절을 처리할 수 없습니다.");
-                }
-            });
+                .then((res) => {
+                    if (res.ok) {
+                        getrentallist();
+                    } else {
+                        alert2.fire({
+                            text: "예약 거절을 처리할 수 없습니다.",
+                            confirmButtonText: "확인",
+                            confirmButtonColor: "#09090b",
+                            customClass: {
+                                title: "custom-popup-title",
+                                htmlContainer: "custom-popup-content",
+                                confirmButton: "custom-confirm"
+                            }
+                        });
+                    }
+                });
+        });
     }
 
     /*대여 목록리스트
@@ -397,7 +512,8 @@ export default function RentalManager() {
                                     </div>
 
                                     <div className="rental-info">
-                                        <div className="rental-row"><span>대여 물품</span><p>{rental.item_name}</p></div>
+                                        <div className="rental-row"><span>대여 물품</span><p>{rental.item_name}</p>
+                                        </div>
                                         <div className="rental-row"><span>수령 시간</span>
                                             <p>{showdate(rental.requested_pickup_at)} {showtime(rental.requested_pickup_at)}</p>
                                         </div>
@@ -443,7 +559,8 @@ export default function RentalManager() {
                                     </div>
 
                                     <div className="rental-info">
-                                        <div className="rental-row"><span>대여 물품</span><p>{rental.item_name}</p></div>
+                                        <div className="rental-row"><span>대여 물품</span><p>{rental.item_name}</p>
+                                        </div>
                                         <div className="rental-row"><span>수령 시간</span>
                                             <p>{showdate(rental.requested_pickup_at)} {showtime(rental.requested_pickup_at)}</p>
                                         </div>
@@ -451,7 +568,8 @@ export default function RentalManager() {
                                             <p>{showdate(rental.requested_return_at)} {showtime(rental.requested_return_at)}</p>
                                         </div>
                                         <div className="rental-row"><span>대여 관리자</span>
-                                            <p>{rental.display_admin_name ? rental.display_admin_name : "-"}</p></div>
+                                            <p>{rental.display_admin_name ? rental.display_admin_name : "-"}</p>
+                                        </div>
                                     </div>
 
                                     <div className="rental-bottom">
@@ -488,14 +606,16 @@ export default function RentalManager() {
                                     </div>
 
                                     <div className="rental-info">
-                                        <div className="rental-row"><span>대여 물품</span><p>{rental.item_name}</p></div>
+                                        <div className="rental-row"><span>대여 물품</span><p>{rental.item_name}</p>
+                                        </div>
                                         <div className="rental-row"><span>수령 시간</span>
                                             <p>{showdate(rental.requested_pickup_at)} {showtime(rental.requested_pickup_at)}</p>
                                         </div>
                                         <div className="rental-row"><span>반납 예정</span>
                                             <p>{showdate(rental.requested_return_at)} {showtime(rental.requested_return_at)}</p>
                                         </div>
-                                        <div className="rental-row"><span>남은 기간</span><p>{show_gigan_state(rental)}</p>
+                                        <div className="rental-row"><span>남은 기간</span>
+                                            <p>{show_gigan_state(rental)}</p>
                                         </div>
                                         <div className="rental-row"><span>대여 관리자</span>
                                             <p>{rental.display_admin_name ? rental.display_admin_name : "-"}</p>
@@ -538,11 +658,13 @@ export default function RentalManager() {
                                     </div>
 
                                     <div className="rental-info">
-                                        <div className="rental-row"><span>대여 물품</span><p>{rental.item_name}</p></div>
+                                        <div className="rental-row"><span>대여 물품</span><p>{rental.item_name}</p>
+                                        </div>
                                         <div className="rental-row"><span>반납 예정</span>
                                             <p>{showdate(rental.requested_return_at)} {showtime(rental.requested_return_at)}</p>
                                         </div>
-                                        <div className="rental-row"><span>남은 기간</span><p>{show_gigan_state(rental)}</p>
+                                        <div className="rental-row"><span>남은 기간</span>
+                                            <p>{show_gigan_state(rental)}</p>
                                         </div>
                                     </div>
 

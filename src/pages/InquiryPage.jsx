@@ -1,5 +1,7 @@
 import {useEffect, useState} from "react";
 import "../InquiryPage.css";
+import alert2 from "sweetalert2";
+
 /*
 const USER_ID = 1;
 임시 id 1번 나중에
@@ -77,7 +79,7 @@ export default function InquiryPage() { /*로그인 구현시 props로 받고 US
     useEffect(() => {
         window.scrollTo(0, 0);
 
-        if(userid !== "") {
+        if (userid !== "") {
             fetch("http://localhost:8000/api/users/" + userid + "/status")
                 .then((res) => res.json())
                 .then((data) => {
@@ -91,11 +93,30 @@ export default function InquiryPage() { /*로그인 구현시 props로 받고 US
         e.preventDefault();
 
         if (!cansend) {
-            alert("회원가입 승인된 학생만 문의를 보낼 수 있습니다.");
+            alert2.fire({
+                text: "회원가입 승인된 학생만 문의를 보낼 수 있습니다.",
+                confirmButtonText: "확인",
+                confirmButtonColor: "#09090b",
+                customClass: {
+                    title: "custom-popup-title",
+                    htmlContainer: "custom-popup-content",
+                    confirmButton: "custom-confirm"
+                }
+            });
             return;
         }
+
         if (munititle === "" || municontent === "") {
-            alert("문의 제목과 문의 내용을 입력해주세요.");
+            alert2.fire({
+                text: "문의 제목과 문의 내용을 입력해주세요.",
+                confirmButtonText: "확인",
+                confirmButtonColor: "#09090b",
+                customClass: {
+                    title: "custom-popup-title",
+                    htmlContainer: "custom-popup-content",
+                    confirmButton: "custom-confirm"
+                }
+            });
             return;
         }
 
@@ -112,11 +133,21 @@ export default function InquiryPage() { /*로그인 구현시 props로 받고 US
         })
             .then((res) => res.json())
             .then((data) => {
-                alert(data.message);
-                if (data.success) {
-                    setmunititle("");
-                    setmunicontent("");
-                }
+                alert2.fire({
+                    text: data.message,
+                    confirmButtonText: "확인",
+                    confirmButtonColor: "#09090b",
+                    customClass: {
+                        title: "custom-popup-title",
+                        htmlContainer: "custom-popup-content",
+                        confirmButton: "custom-confirm"
+                    }
+                }).then(() => {
+                    if (data.success) {
+                        setmunititle("");
+                        setmunicontent("");
+                    }
+                });
             });
     };
 
@@ -128,7 +159,7 @@ export default function InquiryPage() { /*로그인 구현시 props로 받고 US
         faqpopup = (
             <div>
                 <div className="faqopenbg" onClick={faqclosego}></div>
-                
+
                 <div className="faqdetail">
                     <button className="faqclose" onClick={() => setfaqSelector(null)}>x</button>
                     <h3>{faqSelector.munititle}</h3>

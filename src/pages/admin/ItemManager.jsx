@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import "../../ItemManager.css";
+import alert2 from "sweetalert2";
 
 /*
 * 구현하다 보니깐 줄코드수가 게속 늘어나게 되는데 나중에 모듈화 시도해봄.. 일단 구현 먼저
@@ -159,7 +160,16 @@ export default function ItemManager() {
     function savemulphon() {
 
         if (mulphoncount === "" || isNaN(Number(mulphoncount)) || mulphon_preparing === "" || isNaN(Number(mulphon_preparing))) {
-            alert("수량은 숫자로 입력해주세요.");
+            alert2.fire({
+                text: "수량은 숫자로 입력해주세요.",
+                confirmButtonText: "확인",
+                confirmButtonColor: "#09090b",
+                customClass: {
+                    title: "custom-popup-title",
+                    htmlContainer: "custom-popup-content",
+                    confirmButton: "custom-confirm"
+                }
+            });
             return;
         }
         let dmulphon_data = new FormData();
@@ -187,7 +197,16 @@ export default function ItemManager() {
     function savenewmulphon() {
 
         if (mulphoncount === "" || isNaN(Number(mulphoncount)) || mulphon_preparing === "" || isNaN(Number(mulphon_preparing))) {
-            alert("수량은 숫자로 입력해주세요.");
+            alert2.fire({
+                text: "수량은 숫자로 입력해주세요.",
+                confirmButtonText: "확인",
+                confirmButtonColor: "#09090b",
+                customClass: {
+                    title: "custom-popup-title",
+                    htmlContainer: "custom-popup-content",
+                    confirmButton: "custom-confirm"
+                }
+            });
             return;
         }
 
@@ -214,27 +233,58 @@ export default function ItemManager() {
 
     /*물품 삭제*/
     function deletemulphon() {
-        let check = window.confirm("정말 이 물품을 제거하겠습니까?");
+        alert2.fire({
+            text: "정말 이 물품을 제거하겠습니까?",
+            showCancelButton: true,
+            confirmButtonText: "삭제",
+            cancelButtonText: "취소",
+            confirmButtonColor: "#be123c",
+            cancelButtonColor: "#71717a",
+            customClass: {
+                title: "custom-popup-title",
+                htmlContainer: "custom-popup-content",
+                confirmButton: "custom-confirm",
+                cancelButton: "custom-cancel"
+            }
+        }).then((result) => {
+            if (!result.isConfirmed) {
+                return;
+            }
 
-        if (!check) {
-            return;
-        }
-
-        fetch("http://localhost:8000/api/items/" + selectmulphon.id + "/delete", {
-            method: "POST",
-        })
-            .then((res) => {
-                if (res.ok) {
-                    closemulphon();
-                    getmulphon();
-                } else {
-                    alert("삭제할 수 없는 물품입니다.");
-                }
+            fetch("http://localhost:8000/api/items/" + selectmulphon.id + "/delete", {
+                method: "POST",
             })
-            /*catch 추가 */
-        .catch(() => {
-            alert("삭제할 수 없는 물품입니다.");
-        });
+                .then((res) => {
+                    if (res.ok) {
+                        closemulphon();
+                        getmulphon();
+                    } else {
+                        alert2.fire({
+                            text: "삭제할 수 없는 물품입니다.",
+                            confirmButtonText: "확인",
+                            confirmButtonColor: "#09090b",
+                            customClass: {
+                                title: "custom-popup-title",
+                                htmlContainer: "custom-popup-content",
+                                confirmButton: "custom-confirm"
+                            }
+                        });
+                    }
+                })
+                /*catch 추가 */
+                .catch(() => {
+                    alert2.fire({
+                        text: "삭제할 수 없는 물품입니다.",
+                        confirmButtonText: "확인",
+                        confirmButtonColor: "#09090b",
+                        customClass: {
+                            title: "custom-popup-title",
+                            htmlContainer: "custom-popup-content",
+                            confirmButton: "custom-confirm"
+                        }
+                    });
+                });
+        })
     }
 
     /*물품 로그 클릭 이벤트 정리*/

@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import {useState, useEffect} from "react";
+import alert2 from "sweetalert2";
 
-export default function RentalModal({ item, onClose, onSuccess }) {
+export default function RentalModal({item, onClose, onSuccess}) {
     const [schedulelist, setSchedulelist] = useState([]);
     const [closedDays, setClosedDays] = useState([]);
 
@@ -97,7 +98,16 @@ export default function RentalModal({ item, onClose, onSuccess }) {
 
     const submitRental = async () => {
         if (rentTime === "" || returnTime === "") {
-            alert("대여 시간과 반납 시간을 모두 선택해주세요.");
+            alert2.fire({
+                text: "대여 시간과 반납 시간을 모두 선택해주세요.",
+                confirmButtonText: "확인",
+                confirmButtonColor: "#09090b",
+                customClass: {
+                    title: "custom-popup-title",
+                    htmlContainer: "custom-popup-content",
+                    confirmButton: "custom-confirm"
+                }
+            });
             return;
         }
         let savedUser = sessionStorage.getItem("user");
@@ -105,7 +115,16 @@ export default function RentalModal({ item, onClose, onSuccess }) {
             savedUser = localStorage.getItem("user");
         }
         if (!savedUser) {
-            alert("로그인을 해주세요.");
+            alert2.fire({
+                text: "로그인을 해주세요.",
+                confirmButtonText: "확인",
+                confirmButtonColor: "#09090b",
+                customClass: {
+                    title: "custom-popup-title",
+                    htmlContainer: "custom-popup-content",
+                    confirmButton: "custom-confirm"
+                }
+            });
             return;
         }
         const userInfo = JSON.parse(savedUser);
@@ -115,7 +134,7 @@ export default function RentalModal({ item, onClose, onSuccess }) {
 
             const res = await fetch('http://localhost:8000/api/rentals', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     user_id: userInfo.id,
                     item_id: item.id,
@@ -126,14 +145,42 @@ export default function RentalModal({ item, onClose, onSuccess }) {
             });
             const resultData = await res.json();
             if (res.ok) {
-                alert(`[${item.name}] 대여 신청 되었습니다!`);
-                if (onSuccess) onSuccess();
-                onClose();
+                alert2.fire({
+                    text: `[${item.name}] 대여 신청 되었습니다!`,
+                    confirmButtonText: "확인",
+                    confirmButtonColor: "#09090b",
+                    customClass: {
+                        title: "custom-popup-title",
+                        htmlContainer: "custom-popup-content",
+                        confirmButton: "custom-confirm"
+                    }
+                }).then(() => {
+                    if (onSuccess) onSuccess();
+                    onClose();
+                });
             } else {
-                alert("신청 실패: " + resultData.message);
+                alert2.fire({
+                    text: "신청 실패: " + resultData.message,
+                    confirmButtonText: "확인",
+                    confirmButtonColor: "#09090b",
+                    customClass: {
+                        title: "custom-popup-title",
+                        htmlContainer: "custom-popup-content",
+                        confirmButton: "custom-confirm"
+                    }
+                });
             }
         } catch (error) {
-            alert(error.message);
+            alert2.fire({
+                text: error.message,
+                confirmButtonText: "확인",
+                confirmButtonColor: "#09090b",
+                customClass: {
+                    title: "custom-popup-title",
+                    htmlContainer: "custom-popup-content",
+                    confirmButton: "custom-confirm"
+                }
+            });
         }
     };
 
@@ -157,7 +204,7 @@ export default function RentalModal({ item, onClose, onSuccess }) {
                 <div className="modal-section items-center justify-center text-center">
                     <div className="item-image-box">
                         {item.image ? (
-                            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                            <img src={item.image} alt={item.name} className="w-full h-full object-cover"/>
                         ) : (
                             <span className="text-sm font-bold text-gray-600">이미지 오류</span>
                         )}
@@ -200,10 +247,12 @@ export default function RentalModal({ item, onClose, onSuccess }) {
                                     }}
                                     className="day-btn group"
                                 >
-                                    <span className={`text-xs font-bold ${isSelect ? 'text-black' : isClosedDay ? 'text-red-400' : 'text-gray-400'}`}>
+                                    <span
+                                        className={`text-xs font-bold ${isSelect ? 'text-black' : isClosedDay ? 'text-red-400' : 'text-gray-400'}`}>
                                         {dayObj.label}
                                     </span>
-                                    <span className={`day-circle ${isSelect ? 'bg-black text-white shadow-md' : isClosedDay ? 'text-red-500 bg-red-50' : 'text-gray-600 group-hover:bg-gray-100'}`}>
+                                    <span
+                                        className={`day-circle ${isSelect ? 'bg-black text-white shadow-md' : isClosedDay ? 'text-red-500 bg-red-50' : 'text-gray-600 group-hover:bg-gray-100'}`}>
                                         {dayObj.date}
                                     </span>
                                 </button>
@@ -212,9 +261,10 @@ export default function RentalModal({ item, onClose, onSuccess }) {
                     </div>
 
                     {rentClosedInfo ? (
-                        <div className="empty-text" style={{ color: '#ef4444', borderColor: '#fca5a5', padding: '16px 0' }}>
-                            <p style={{ fontWeight: 'bold', marginBottom: '4px' }}>휴무일로 지정되어 대여가 불가합니다.</p>
-                            <p style={{ color: '#b91c1c' }}>사유: {rentClosedInfo.reason}</p>
+                        <div className="empty-text"
+                             style={{color: '#ef4444', borderColor: '#fca5a5', padding: '16px 0'}}>
+                            <p style={{fontWeight: 'bold', marginBottom: '4px'}}>휴무일로 지정되어 대여가 불가합니다.</p>
+                            <p style={{color: '#b91c1c'}}>사유: {rentClosedInfo.reason}</p>
                         </div>
                     ) : rentSlots.length > 0 ? (
                         <div className="grid grid-cols-4 gap-2">
@@ -235,8 +285,8 @@ export default function RentalModal({ item, onClose, onSuccess }) {
                     <div className="mt-auto pt-6">
                         <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 h-full">
                             <p className="text-xs text-gray-700 font-bold leading-relaxed tracking-wide">
-                                대여 시 안내사항<br /><br />
-                                선택하신 시간에 맞춰 학생회실을 방문하여 대여물품을 수령해 주세요.<br />
+                                대여 시 안내사항<br/><br/>
+                                선택하신 시간에 맞춰 학생회실을 방문하여 대여물품을 수령해 주세요.<br/>
                                 (대여 기간은 최대 3일입니다.)
                             </p>
                         </div>
@@ -271,10 +321,12 @@ export default function RentalModal({ item, onClose, onSuccess }) {
                                     }}
                                     className={`day-btn group ${isInvalid ? 'day-btn-disabled' : ''}`}
                                 >
-                                    <span className={`text-xs font-bold ${isSelect ? 'text-black' : isClosedDay ? 'text-red-400' : 'text-gray-400'}`}>
+                                    <span
+                                        className={`text-xs font-bold ${isSelect ? 'text-black' : isClosedDay ? 'text-red-400' : 'text-gray-400'}`}>
                                         {dayObj.label}
                                     </span>
-                                    <span className={`day-circle ${isSelect ? 'bg-black text-white shadow-md' : isClosedDay && !isInvalid ? 'text-red-500 bg-red-50' : 'text-gray-600 group-hover:bg-gray-100'}`}>
+                                    <span
+                                        className={`day-circle ${isSelect ? 'bg-black text-white shadow-md' : isClosedDay && !isInvalid ? 'text-red-500 bg-red-50' : 'text-gray-600 group-hover:bg-gray-100'}`}>
                                         {dayObj.date}
                                     </span>
                                 </button>
@@ -282,9 +334,10 @@ export default function RentalModal({ item, onClose, onSuccess }) {
                         })}
                     </div>
                     {returnClosedInfo ? (
-                        <div className="empty-text" style={{ color: '#ef4444', borderColor: '#fca5a5', padding: '16px 0' }}>
-                            <p style={{ fontWeight: 'bold', marginBottom: '4px' }}>휴무일로 지정되어 반납이 불가합니다.</p>
-                            <p style={{ color: '#b91c1c' }}>사유: {returnClosedInfo.reason}</p>
+                        <div className="empty-text"
+                             style={{color: '#ef4444', borderColor: '#fca5a5', padding: '16px 0'}}>
+                            <p style={{fontWeight: 'bold', marginBottom: '4px'}}>휴무일로 지정되어 반납이 불가합니다.</p>
+                            <p style={{color: '#b91c1c'}}>사유: {returnClosedInfo.reason}</p>
                         </div>
                     ) : returnSlots.length > 0 ? (
                         <div className="grid grid-cols-4 gap-2">

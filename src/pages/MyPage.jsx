@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import {useEffect, useState} from "react";
 import "./MyPage.css";
+import alert2 from "sweetalert2";
 
 export default function MyPage() {
     const useString = localStorage.getItem("user") || sessionStorage.getItem("user");
@@ -28,7 +29,7 @@ export default function MyPage() {
                     history: data.filter(item => ['returned', 'rejected'].includes(item.status)).slice(0, 2)
                 });
                 if (data.overdue_count !== undefined) {
-                    const updatedUser = { ...user, overdue_count: data.overdue_count };
+                    const updatedUser = {...user, overdue_count: data.overdue_count};
                     if (localStorage.getItem("user")) localStorage.setItem("user", JSON.stringify(updatedUser));
                     if (sessionStorage.getItem("user")) sessionStorage.setItem("user", JSON.stringify(updatedUser));
                 }
@@ -45,10 +46,28 @@ export default function MyPage() {
     }, [user?.id]);
 
     const handleLogout = () => {
-        localStorage.removeItem("user");
-        sessionStorage.removeItem("user");
-        alert("로그아웃");
-        window.location.href = "/";
+        alert2.fire({
+            text: "로그아웃하시겠습니까?",
+            showCancelButton: true,
+            confirmButtonText: "확인",
+            cancelButtonText: "취소",
+            confirmButtonColor: "#09090b",
+            cancelButtonColor: "#71717a",
+            customClass: {
+                title: "custom-popup-title",
+                htmlContainer: "custom-popup-content",
+                confirmButton: "custom-confirm",
+                cancelButton: "custom-cancel"
+            }
+        }).then((result) => {
+            if (!result.isConfirmed) {
+                return;
+            }
+
+            localStorage.removeItem("user");
+            sessionStorage.removeItem("user");
+            window.location.href = "/";
+        });
     };
 
     if (!user) {
@@ -61,13 +80,20 @@ export default function MyPage() {
 
     const getStatusUI = (status) => {
         switch (status) {
-            case 'pending': return { text: '승인 대기', className: 'badge-yellow' };
-            case 'approved': return { text: '승인 완료', className: 'badge-green' };
-            case 'rented': return { text: '대여중', className: 'badge-green' };
-            case 'overdue': return { text: '연체됨', className: 'badge-red' };
-            case 'returned': return { text: '반납 완료', className: 'badge-gray' };
-            case 'rejected': return { text: '거절됨', className: 'badge-red' };
-            default: return { text: status, className: 'badge-gray' };
+            case 'pending':
+                return {text: '승인 대기', className: 'badge-yellow'};
+            case 'approved':
+                return {text: '승인 완료', className: 'badge-green'};
+            case 'rented':
+                return {text: '대여중', className: 'badge-green'};
+            case 'overdue':
+                return {text: '연체됨', className: 'badge-red'};
+            case 'returned':
+                return {text: '반납 완료', className: 'badge-gray'};
+            case 'rejected':
+                return {text: '거절됨', className: 'badge-red'};
+            default:
+                return {text: status, className: 'badge-gray'};
         }
     };
 
@@ -177,7 +203,8 @@ export default function MyPage() {
                                 </div>
                                 <div className="userinfotitle">
                                     연체횟수
-                                    <span className="userinfo red">{user.overdue_count ? `${user.overdue_count}회` : "0회"}</span>
+                                    <span
+                                        className="userinfo red">{user.overdue_count ? `${user.overdue_count}회` : "0회"}</span>
                                 </div>
                             </div>
                         </div>
