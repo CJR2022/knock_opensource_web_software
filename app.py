@@ -1,10 +1,15 @@
 import os
+
+from cv2 import data
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from db import get_connection
 import cv2
 from pyzbar.pyzbar import decode
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime #대여 백엔드 처리하려고 가져옴 오늘시간
 
+app = Flask(__name__)
 app = Flask(__name__)
 CORS(app)
 
@@ -14,6 +19,14 @@ os.makedirs(Uploadfolder, exist_ok=True)
 Itemimagefolder = os.path.join("public", "images")
 os.makedirs(Itemimagefolder, exist_ok=True)
 
+# 활동이미지 저장 -> 사진첩으로 이동하게 링크도 추가
+# 하루마다 폴더를 다시한번 읽어서 초기화 할거임
+#만약 지금 동기화 하고 싶으면 acrivity_img_sync.txt를 지우고 다시 실행 이미지 저장루트는 아래 public.. 따라가셈
+Activityimagefolder = os.path.join("public", "images", "knock_img")
+os.makedirs(Activityimagefolder, exist_ok=True)
+
+Activitysynctxt = "activity_img_sync.txt"
+Activitylink = "https://software.cbnu.ac.kr/sub0507"
 
 def decodeqr(filepath):
     try:
@@ -71,6 +84,92 @@ def check_block_expired(conn):
         """)
     conn.commit()
 
+#하루에 한번 이미지를 동기화하는 함수
+def sync_activity_img_once_a_day(conn):
+    today_text = datetime.today().strftime("%Y-%m-%d")
+    last_sync = ""
+
+    if os.path.exists(Activitysynctxt):
+        with open(Activitysynctxt, "r", encoding="utf-8") as f:
+            last_sync = f.read().strip()
+
+    if last_sync == today_text:
+        return
+
+    with conn.cursor() as cursor:
+        for filename in os.listdir(Activityimagefolder):
+            lowername = filename.lower()
+
+            if not (
+                lowername.endswith(".jpg")
+                or lowername.endswith(".jpeg")
+                or lowername.endswith(".png")
+                or lowername.endswith(".webp")
+            ):
+                continue
+
+            img_src = "/images/knock_img/" + filename
+
+            cursor.execute(
+                "SELECT id FROM activity_img WHERE img_src = %s",
+                (img_src,)
+            )
+            old_img = cursor.fetchone()
+
+            if old_img is None:
+                cursor.execute(
+                    """
+                    INSERT INTO activity_img (img_src, link_url)
+                    VALUES (%s, %s)
+                    """,
+                    (img_src, Activitylink)
+                )
+
+    conn.commit()
+
+    with open(Activitysynctxt, "w", encoding="utf-8") as f:
+        f.write(today_text)
+
+# 신청 시간이 지났는데도 승인 처리 안 된 대여 신청을 자동 거절하는 공용 함수
+# 나중에 이야기 할껀데 거절이유를 쓸꺼임? 거절 이유 써야 한다면 지금 다른곳 뜯어 고쳐야 하는데
+def auto_reject_gigan_rentals(conn):
+    with conn.cursor() as cursor:
+        cursor.execute("""
+                       UPDATE rentals
+                       SET status = 'rejected'
+                       WHERE status = 'pending'
+                         AND requested_pickup_at < NOW()
+                       """)
+    conn.commit()
+
+# 이게 노쇼 방지 함수
+# 승인된 상태이지만 현재 날짜보다 지났으면 ( 널널하게 날짜로함) 해당 렌탈상태를 cancled상태로 만들고 그 사람 연체 횟수 증가
+# 사용 개수는 approve랑 rented overdue로 계산하니깐 canceled 상태 되면 자동으로 사용 가능 될거임
+def auto_gyeonggo_rentals(conn):
+    with conn.cursor() as cursor:
+        cursor.execute("""
+                       SELECT id, user_id, item_id, quantity
+                       FROM rentals
+                       WHERE status = 'approved'
+                         AND DATE(requested_pickup_at) < CURDATE()
+                       """)
+        rows = cursor.fetchall()
+
+        for row in rows:
+            cursor.execute("""
+                           UPDATE rentals
+                           SET status = 'canceled'
+                           WHERE id = %s
+                             AND status = 'approved'
+                           """, (row["id"],))
+
+            if cursor.rowcount == 1:
+                cursor.execute("""
+                               UPDATE users
+                               SET overdue_count = overdue_count + 1
+                               WHERE id = %s
+                               """, (row["user_id"],))
+    conn.commit()
 
 @app.route('/api/signup', methods=['POST'])
 def signup():
@@ -79,6 +178,7 @@ def signup():
         studentid = request.form.get('studentid')
         password = request.form.get('password')
         phone = request.form.get('phone')
+        hashed_password = generate_password_hash(password)
 
         file = request.files['qrimage']
         filename = file.filename
@@ -106,7 +206,7 @@ def signup():
                                                 block_period, created_at)
                              values (%s, %s, %s, %s, 'student', 'pending', 0, NULL, NOW()) \
                              """
-                cursor.execute(insert_sql, (studentid, password, name, phone))
+                cursor.execute(insert_sql, (studentid, hashed_password, name, phone))
 
             conn.commit()
             print("db 저장됨")
@@ -151,7 +251,7 @@ def login():
                 db_overdue_count = user['overdue_count']
                 db_id = user['id']
 
-                if db_password != password:
+                if not check_password_hash(db_password, password):
                     return jsonify({"message": "비밀번호가 일치하지 않습니다"}), 401
                 return jsonify({"message": "로그인 성공"
                                    , "user": {"id": db_id,
@@ -306,7 +406,6 @@ def get_items():
     finally:
         conn.close()
 
-
 @app.route('/api/dashboard/kpi', methods=['GET'])
 def dashboard_kpi():
     conn = get_connection()
@@ -430,7 +529,6 @@ def get_active_students():
         return jsonify(students), 200
     finally:
         conn.close()
-
 
 @app.route('/api/students/<int:student_id>/approve', methods=['POST'])
 def approve_student(student_id):
@@ -801,7 +899,7 @@ def dashboard_heatmap():
         return jsonify(rows), 200
     finally:
         conn.close()
-       
+
  # 관리자 문의 목록 가져오기
 @app.route('/api/admin/inquiries', methods=['GET'])
 def get_admin_inquiries():
@@ -904,7 +1002,7 @@ def unblock_student(student_id):
     finally:
         conn.close()
 
-        
+
 # 관리자 문의 답변 관리 함수
 # 함수 잘못 넣어서 주석 된거 수정
 @app.route('/api/admin/input_inquiries/<int:inquiry_id>/answer', methods=['POST'])
@@ -953,6 +1051,636 @@ def save_admin_inquiry_answer(inquiry_id):
         conn.close()
 
 
+@app.route('/api/admin/schedule-init-data', methods=['GET'])
+def get_schedule_init_data():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id, name, student_number FROM users WHERE role = 'admin'")
+            admins = cursor.fetchall()
+            cursor.execute("""
+                           SELECT w.id,
+                                  w.work_date,
+                                  TIME_FORMAT(w.start_time, '%H:%i') AS start_time,
+                                  TIME_FORMAT(w.end_time, '%H:%i')   AS end_time,
+                                  w.admin_id,
+                                  u.name                             AS admin_name
+                           FROM work_schedules w
+                                    LEFT JOIN users u ON w.admin_id = u.id
+                           ORDER BY w.start_time ASC
+                           """)
+            schedules = cursor.fetchall()
 
+            cursor.execute("SELECT id, closed_date, reason FROM closed_days")
+            closed_days = cursor.fetchall()
+            for row in closed_days:
+                if row["closed_date"]:
+                    row["closed_date"] = row["closed_date"].strftime("%Y-%m-%d")
+
+        return jsonify({
+            "admins": admins,
+            "schedules": schedules,
+            "closedDays": closed_days
+        }), 200
+    except Exception as e:
+        return jsonify({"message": "서버 오류"}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/admin/work-schedules', methods=['POST'])
+def add_work_schedule():
+    data = request.get_json()
+    work_date, start_time = data.get("work_date"), data.get("start_time")
+    end_time, admin_id = data.get("end_time"), data.get("admin_id")
+    if not all([work_date, start_time, end_time, admin_id]):
+        return jsonify({"message": "입력을 완료해주세요"}), 400
+    if start_time >= end_time:
+        return jsonify({"message": "종료 시간은 시작 시간보다 늦어야 합니다."}), 400
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           SELECT id
+                           FROM work_schedules
+                           WHERE work_date = %s
+                             AND start_time < %s
+                             AND end_time > %s
+                           """, (work_date, end_time, start_time))
+
+            if cursor.fetchone():
+                return jsonify({"message": "해당 시간에 이미 일정이 존재합니다"}), 409
+
+            cursor.execute("""
+                           INSERT INTO work_schedules (work_date, start_time, end_time, admin_id)
+                           VALUES (%s, %s, %s, %s)
+                           """, (work_date, start_time, end_time, admin_id))
+        conn.commit()
+        return jsonify({"message": "근무 등록 완료"}), 201
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": "서버 오류"}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/admin/work-schedules/<int:schedule_id>', methods=['PUT', 'DELETE'])
+def manage_single_schedule(schedule_id):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            if request.method == 'PUT':
+                admin_id = request.get_json().get("admin_id")
+                cursor.execute("UPDATE work_schedules SET admin_id = %s WHERE id = %s", (admin_id, schedule_id))
+                conn.commit()
+                return jsonify({"message": "수정 완료"}), 200
+
+            elif request.method == 'DELETE':
+                cursor.execute("DELETE FROM work_schedules WHERE id = %s", (schedule_id,))
+                conn.commit()
+                return jsonify({"message": "삭제 완료"}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": "서버 오류"}), 500
+    finally:
+        conn.close()
+@app.route('/api/admin/closed-days', methods=['POST'])
+def add_closed_day():
+    data = request.get_json()
+    closed_date, reason = data.get("closed_date"), data.get("reason", "사유 없음")
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id FROM closed_days WHERE closed_date = %s", (closed_date,))
+            if cursor.fetchone():
+                return jsonify({"message": "이미 휴무일로 지정된 날짜입니다."}), 409
+
+            cursor.execute("INSERT INTO closed_days (closed_date, reason) VALUES (%s, %s)", (closed_date, reason))
+        conn.commit()
+        return jsonify({"message": "등록 완료"}), 201
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": "서버 오류"}), 500
+    finally:
+        conn.close()
+@app.route('/api/admin/closed-days/<int:day_id>', methods=['DELETE'])
+def remove_closed_day(day_id):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("DELETE FROM closed_days WHERE id = %s", (day_id,))
+        conn.commit()
+        return jsonify({"message": "삭제 완료"}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": "서버 오류"}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/closed-days', methods=['GET'])
+def get_public_closed_days():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id, closed_date, reason FROM closed_days")
+            rows = cursor.fetchall()
+            for row in rows:
+                if row["closed_date"]:
+                    # 프론트엔드와 비교하기 위해 YYYY-MM-DD 형식으로 맞춰줌
+                    row["closed_date"] = row["closed_date"].strftime("%Y-%m-%d")
+            return jsonify(rows), 200
+    except Exception as e:
+        print(f"휴무일 조회 에러: {e}")
+        return jsonify({"message": "서버 오류"}), 500
+    finally:
+        conn.close()
+
+
+@app.route('/api/users/<int:user_id>/inquiries', methods=['GET'])
+def get_user_inquiries(user_id):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           SELECT i.id,
+                                  i.title,
+                                  i.content,
+                                  i.status,
+                                  DATE_FORMAT(i.created_at, '%%Y-%%m-%%d %%H:%%i') AS created_at,
+                                  a.content                                        AS answer_content,
+                                  DATE_FORMAT(a.created_at, '%%Y-%%m-%%d %%H:%%i') AS answered_at
+                           FROM inquiries i
+                                    LEFT JOIN inquiry_answers a ON a.id = (SELECT ia.id
+                                                                           FROM inquiry_answers ia
+                                                                           WHERE ia.inquiry_id = i.id
+                                                                           ORDER BY ia.created_at DESC, ia.id
+                                                                                                  DESC LIMIT 1
+                               )
+                           WHERE i.user_id = %s
+                           ORDER BY i.created_at DESC
+                           """, (user_id,))
+            rows = cursor.fetchall()
+        return jsonify(rows), 200
+
+    except Exception as e:
+        return jsonify({"message": "문의 내역을 불러오는 중 에러가 발생했습니다."}), 500
+# 관리자 대여 목록 가져오기
+# 가져오는게 조금 많긴함 id 대여 물품 상태 등등
+# 근무표도 가져와서 대여자가 누구인지도 보여줘야해서 코드가 많이 길어졌음 프론트처리도 가능할거 같은데
+# 그냥 백쪽에서 끝내려고함
+@app.route('/api/admin/rentals', methods=['GET'])
+def get_admin_rentals():
+    admin_id = request.args.get("admin_id")
+
+    if not admin_id:
+        admin_id = "0"
+
+    conn = get_connection()
+    try:
+        check_overdue_rentals(conn)
+        auto_reject_gigan_rentals(conn) #해당 자동 거절을 여기다둠 한번씩 관리자가 들어갈텐데 그때마다 자동 거절 되도록
+        auto_gyeonggo_rentals(conn)
+
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           SELECT r.id AS rental_id,
+                                  r.user_id,
+                                  r.item_id,
+                                  r.quantity,
+                                  r.requested_pickup_at,
+                                  r.requested_return_at,
+                                  r.status,
+                                  r.approved_admin_id,
+                                  r.approved_at,
+                                  r.rented_at,
+                                  r.returned_at,
+                                  r.returned_admin_id,
+                                  DATEDIFF(r.requested_return_at, NOW()) AS left_day,
+                                  u.name AS user_name,
+                                  u.student_number,
+                                  u.phone,
+                                  u.overdue_count,
+                                  i.name AS item_name,
+                                  i.category_id,
+                                  c.name AS category_name,
+                                  approved_admin.name AS approved_admin_name,
+                                  returned_admin.name AS returned_admin_name,
+                                  r.rented_admin_id,
+                                  rented_admin.name AS rented_admin_name
+                           FROM rentals r
+                                    JOIN users u ON r.user_id = u.id
+                                    JOIN items i ON r.item_id = i.id
+                                    JOIN categories c ON i.category_id = c.id
+                                    LEFT JOIN users approved_admin ON r.approved_admin_id = approved_admin.id
+                                    LEFT JOIN users returned_admin ON r.returned_admin_id = returned_admin.id
+                                    LEFT JOIN users rented_admin ON r.rented_admin_id = rented_admin.id
+                           WHERE r.status IN ('pending', 'approved', 'rented', 'overdue', 'returned', 'rejected', 'canceled')
+                           ORDER BY r.requested_pickup_at ASC
+                           """)
+
+            rows = cursor.fetchall()
+
+            # 근무표는 따로 가져옴
+            cursor.execute("""
+                           SELECT ws.work_date,
+                                  TIME_FORMAT(ws.start_time, '%H:%i') AS start_time,
+                                  TIME_FORMAT(ws.end_time, '%H:%i') AS end_time,
+                                  ws.admin_id,
+                                  u.name AS admin_name
+                           FROM work_schedules ws
+                                    JOIN users u ON ws.admin_id = u.id
+                           WHERE ws.work_date IN ('mon', 'tue', 'wed', 'thu', 'fri')
+                           ORDER BY FIELD(ws.work_date, 'mon', 'tue', 'wed', 'thu', 'fri'), ws.start_time
+                           """)
+
+            schedules = cursor.fetchall()
+
+            # 여기가 근무자 배정
+            def find_schedule_worker(time_value):
+                if not time_value:
+                    return None
+
+                week_number = time_value.weekday()
+
+                if week_number > 4:
+                    return None
+
+                day_names = ["mon", "tue", "wed", "thu", "fri"]
+                day_name = day_names[week_number]
+
+                time_text = time_value.strftime("%H:%M")
+
+                for schedule in schedules:
+                    if schedule["work_date"] == day_name:
+                        if schedule["start_time"] <= time_text < schedule["end_time"]:
+                            return schedule
+
+                return None
+
+            # 당일 근무시 체크점 나누려고
+            def is_today(time_value):
+                if not time_value:
+                    return False
+
+                return time_value.date() == datetime.today().date()
+
+            for row in rows:
+                pickup_worker = find_schedule_worker(row["requested_pickup_at"])
+
+                return_worker = find_schedule_worker(row["requested_return_at"])
+
+                if pickup_worker:
+                    row["pickup_admin_id"] = pickup_worker["admin_id"]
+                    row["pickup_admin_name"] = pickup_worker["admin_name"]
+                else:
+                    row["pickup_admin_id"] = ""
+                    row["pickup_admin_name"] = ""
+
+                if return_worker:
+                    row["return_admin_id"] = return_worker["admin_id"]
+                    row["return_admin_name"] = return_worker["admin_name"]
+                else:
+                    row["return_admin_id"] = ""
+                    row["return_admin_name"] = ""
+
+                row["my_part"] = ""
+
+                if row["status"] == "pending":
+                        if pickup_worker and str(pickup_worker["admin_id"]) == str(admin_id):
+                            row["my_part"] = "approve"
+
+                if row["status"] == "approved":
+                    if is_today(row["requested_pickup_at"]):
+                        if pickup_worker and str(pickup_worker["admin_id"]) == str(admin_id):
+                            row["my_part"] = "pickup"
+
+                if row["status"] == "rented":
+                    if is_today(row["requested_return_at"]):
+                        if return_worker and str(return_worker["admin_id"]) == str(admin_id):
+                            row["my_part"] = "return"
+
+                if row["status"] == "overdue":
+                    if return_worker and str(return_worker["admin_id"]) == str(admin_id):
+                        row["my_part"] = "overdue"
+
+                #여기가 1. 실제 누른사람 2. 근무표 3. - 로 표시
+                # 사실상 근무표 우선으로 하되 누군가 누르면 그사람으로 로그 남게
+                if row["rented_admin_name"]:
+                    row["display_admin_name"] = row["rented_admin_name"]
+                elif row["pickup_admin_name"]:
+                    row["display_admin_name"] = row["pickup_admin_name"]
+                else:
+                    row["display_admin_name"] = "-"
+
+                if row["returned_admin_name"]:
+                    row["display_return_admin_name"] = row["returned_admin_name"]
+                elif row["return_admin_name"]:
+                    row["display_return_admin_name"] = row["return_admin_name"]
+                else:
+                    row["display_return_admin_name"] = "-"
+
+                row["requested_pickup_at"] = row["requested_pickup_at"].strftime("%Y-%m-%d %H:%M")
+                row["requested_return_at"] = row["requested_return_at"].strftime("%Y-%m-%d %H:%M")
+                row["approved_at"] = row["approved_at"].strftime("%Y-%m-%d %H:%M") if row["approved_at"] else ""
+                row["rented_at"] = row["rented_at"].strftime("%Y-%m-%d %H:%M") if row["rented_at"] else ""
+                row["returned_at"] = row["returned_at"].strftime("%Y-%m-%d %H:%M") if row["returned_at"] else ""
+
+        return jsonify(rows), 200
+
+    finally:
+        conn.close()
+
+# 수령 확인
+@app.route('/api/admin/rentals/<int:rental_id>/rent', methods=['POST'])
+def admin_rental_rent(rental_id):
+    data = request.get_json() or {}
+
+    admin_id = data.get("admin_id")
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           UPDATE rentals
+                           SET status = 'rented',
+                               rented_at = NOW(),
+                               rented_admin_id = %s
+                           WHERE id = %s
+                             AND status = 'approved'
+                           """, (admin_id,rental_id))
+
+        conn.commit()
+
+        if cursor.rowcount == 0:
+            return "", 400
+
+        return "", 200
+
+    except Exception:
+        conn.rollback()
+        return "", 500
+
+    finally:
+        conn.close()
+
+
+# 반납 확인
+@app.route('/api/admin/rentals/<int:rental_id>/return', methods=['POST'])
+def admin_rental_return(rental_id):
+    data = request.get_json()
+    admin_id = data.get("admin_id")
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           UPDATE rentals
+                           SET status = 'returned',
+                               returned_at = NOW(),
+                               returned_admin_id = %s
+                           WHERE id = %s
+                             AND status IN ('rented', 'overdue')
+                           """, (admin_id, rental_id))
+
+        conn.commit()
+
+        if cursor.rowcount == 0:
+            return "", 400
+
+        return "", 200
+
+    except Exception:
+        conn.rollback()
+        return "", 500
+
+    finally:
+        conn.close()
+
+# 예약 승인
+# 수정사항 1
+# 승인할때 쭈르륵 받아버려서 전체수량보다 오버가 된다면?
+# 이떄를 방지하기 위해서 승인시 그 시간대에 해당 물품의 대여 가능상태가 총 몇개인지 작성
+# 서브쿼리가 하는일이 대여가능 수량 계산하는건데 먼저 sum을 구할때는 자기자신 제이하고 승인, 대여, 연체중인것들이랑 연체제외 정상적으로 반납되는 시간들일때를 뺌
+# 그 외에 특이사항은 추후 피드백 통해서
+@app.route('/api/admin/rentals/<int:rental_id>/approve', methods=['POST'])
+def admin_rental_approve(rental_id):
+    data = request.get_json() or {}
+    admin_id = data.get("admin_id")
+
+    if not admin_id:
+        return jsonify({
+            "message": "관리자 계정이 아닙니다."
+        }), 400
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           SELECT r.id,
+                                  r.quantity,
+                                  ( i.total_count - i.preparing_count - COALESCE((SELECT SUM(gigan.quantity) FROM rentals gigan
+                                                                                  WHERE gigan.item_id = r.item_id
+                                                                                    AND gigan.id != r.id
+                                                                                    AND gigan.status IN ('approved', 'rented', 'overdue')
+                                                                                    AND ( gigan.status = 'overdue' OR ( gigan.requested_pickup_at < r.requested_return_at AND gigan.requested_return_at > r.requested_pickup_at))
+                                                                                    ), 0)) AS available
+                           FROM rentals r
+                                    JOIN items i ON r.item_id = i.id
+                           WHERE r.id = %s
+                             AND r.status = 'pending'
+                           """, (rental_id,))
+
+            rental = cursor.fetchone()
+
+            if rental is None:
+                return jsonify({
+                    "message": "예약 정보가 없습니다."
+                }), 400
+
+            if rental["available"] < rental["quantity"]:
+                return jsonify({
+                    "message": "해당 시간대에 사용 가능한 물품 수량이 부족합니다."
+                }), 400
+
+            cursor.execute("""
+                           UPDATE rentals
+                           SET status            = 'approved',
+                               approved_admin_id = %s,
+                               approved_at       = NOW()
+                           WHERE id = %s
+                             AND status = 'pending'
+                           """, (admin_id, rental_id))
+
+            if cursor.rowcount == 0:
+                conn.rollback()
+                return jsonify({
+                    "message": "이미 처리된 예약입니다."
+                }), 400
+
+        conn.commit()
+        return "", 200
+
+    except Exception:
+        conn.rollback()
+        return jsonify({
+        "message": "예약 승인 처리 중 오류가 발생했습니다."
+        }), 500
+
+    finally:
+        conn.close()
+
+
+# 예약 거절
+# 수정사항 1. 장난으로 거절하는 관리자 로그 관리 추가했음
+@app.route('/api/admin/rentals/<int:rental_id>/reject', methods=['POST'])
+def admin_rental_reject(rental_id):
+    data = request.get_json() or {}
+    admin_id = data.get("admin_id")
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           UPDATE rentals
+                           SET status = 'rejected',
+                               reject_reason = %s
+                           WHERE id = %s
+                             AND status = 'pending'
+                           """, (admin_id, rental_id))
+
+            if cursor.rowcount == 0:
+                conn.rollback()
+                return "", 400
+
+        conn.commit()
+        return "", 200
+
+    except Exception:
+        conn.rollback()
+        return "", 500
+
+    finally:
+        conn.close()
+
+#렌딩페이지를 위한 api
+# 활동이미지 출력하고 싶어서 새로운 db 테이블 만듬
+@app.route('/api/landing/stats', methods=['GET'])
+def get_landing_stats():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           SELECT COUNT(*) AS user_count
+                           FROM users
+                           WHERE role = 'student'
+                           """)
+            user_count = cursor.fetchone()["user_count"]
+
+            cursor.execute("""
+                           SELECT COALESCE(SUM(quantity), 0) AS total_rented_count
+                           FROM rentals
+                           WHERE status IN ('rented', 'overdue')
+                           """)
+            total_rented_count = cursor.fetchone()["total_rented_count"]
+
+            cursor.execute("""
+                           SELECT i.id AS item_id,
+                                  i.name AS item_name,
+                                  COALESCE(SUM(
+                                      CASE
+                                          WHEN r.status IN ('rented', 'overdue') THEN r.quantity
+                                          ELSE 0
+                                      END
+                                  ), 0) AS rental_count
+                           FROM items i
+                                    LEFT JOIN rentals r ON r.item_id = i.id
+                           GROUP BY i.id, i.name
+                           ORDER BY rental_count DESC, i.id ASC
+                           """)
+            rental_rows = cursor.fetchall()
+
+            rental_item_list = []
+            for row in rental_rows:
+                rental_rate = 0
+                if total_rented_count > 0:
+                    rental_rate = round((row["rental_count"] / total_rented_count) * 100)
+
+                rental_item_list.append({
+                    "item_id": row["item_id"],
+                    "item_name": row["item_name"],
+                    "rental_count": row["rental_count"],
+                    "rental_rate": rental_rate
+                })
+
+            cursor.execute("""
+                           SELECT COUNT(*) AS month_rental_count
+                           FROM rentals
+                           WHERE requested_return_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+                             AND status IN ('rented', 'overdue', 'returned')
+                           """)
+            month_rental_count = cursor.fetchone()["month_rental_count"]
+
+            cursor.execute("""
+                           SELECT COUNT(*) AS month_overdue_count
+                           FROM rentals
+                           WHERE requested_return_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+                             AND status = 'overdue'
+                           """)
+            month_overdue_count = cursor.fetchone()["month_overdue_count"]
+
+            overdue_rate = 0
+            if month_rental_count > 0:
+                overdue_rate = round((month_overdue_count / month_rental_count) * 100)
+
+            cursor.execute("""
+                           SELECT i.name AS popular_item,
+                                  COUNT(*) AS popular_count
+                           FROM rentals r
+                                    JOIN items i ON r.item_id = i.id
+                           WHERE r.status IN ('approved', 'rented', 'overdue', 'returned')
+                           GROUP BY r.item_id, i.name
+                           ORDER BY popular_count DESC
+                           LIMIT 1
+                           """)
+            popular_row = cursor.fetchone()
+
+            popular_item = "-"
+            popular_count = 0
+
+            if popular_row:
+                popular_item = popular_row["popular_item"]
+                popular_count = popular_row["popular_count"]
+
+        return jsonify({
+            "user_count": user_count,
+            "rental_item_list": rental_item_list,
+            "overdue_rate": overdue_rate,
+            "month_overdue_count": month_overdue_count,
+            "month_rental_count": month_rental_count,
+            "popular_item": popular_item,
+            "popular_count": popular_count
+        }), 200
+
+    finally:
+        conn.close()
+
+
+@app.route('/api/activity-img', methods=['GET'])
+def get_activity_img():
+    conn = get_connection()
+    try:
+        sync_activity_img_once_a_day(conn)
+
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           SELECT id, img_src, link_url
+                           FROM activity_img
+                           ORDER BY id DESC
+                           """)
+            rows = cursor.fetchall()
+
+        return jsonify(rows), 200
+
+    finally:
+        conn.close()
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
