@@ -218,6 +218,44 @@ body {
   margin-top: 4px;
 }
 
+/*히어로 가이드*/
+.hero-center { text-align: center; }
+.hero-title-big { font-size: 30px; letter-spacing: -0.03em; } /* 자간 줄이면 이쁨*/
+.hero-guide {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+.hero-step {
+  text-align: center;
+}
+.hero-step-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: #09090b;
+  color: white;
+  margin: 0px auto;
+  font-size: 13px;
+  font-weight: bold;
+}
+.hero-step p {
+  font-size: 12px;
+  margin-top: 6px;
+  color: #52525b;
+  font-weight: 500;
+}
+.hero-arrow {
+  width: 16px;
+  height: 16px;
+  margin-top: 8px;
+  opacity: 0.5;
+}
+
 /*카테고리 버튼*/
 .category-btn {
   padding: 6px 12px;
@@ -581,7 +619,39 @@ body {
     border-radius: 999px;
     background-color: rgb(243, 243, 243);
     cursor: text;
+    display: flex;
+    align-items: center;
+    max-width: 410px;
+    width: 100%;
+    margin: 0 auto;
 }
 .searchBar img {
     display: inline;
+}
+
+/*수평 스크롤*/
+.scroll-x {
+  width: 90%;
+  max-width: 410px;
+  margin: 0 auto;
+  padding-top: 10px;
+  padding-bottom: 30px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.scroll-x::-webkit-scrollbar {
+  display: none;
+}
+
+.loading-dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.loading-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #a1a1aa;
 }

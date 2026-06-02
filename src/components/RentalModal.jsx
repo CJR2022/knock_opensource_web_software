@@ -120,7 +120,7 @@ export default function RentalModal({item, onClose, onSuccess}) {
             });
             const resultData = await res.json();
             if(res.ok){
-                alert(`[${item.name}] 대여 신청 되었습니다!`);
+                alert(`[${item.name}] 대여 신청 되었습니다!\n대여 일자에 맞춰 학생회실에 방문 후 수령하세요.`);
                 if(onSuccess) onSuccess();
                 onClose();
 

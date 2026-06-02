@@ -19,8 +19,8 @@ export default function ItemCard({ item, rentservice}) {
       if (res.ok) {
         const myRentals = await res.json();
         const duplicate = myRentals.find(rental =>{
-            const activeStatuses = ["pending", "approved", "rented", "overdue"];
-        return rental.item_id == item.id && activeStatuses.includes(rental.status);
+          const activeStatuses = ["pending", "approved", "rented", "overdue"];
+          return rental.item_id == item.id && activeStatuses.includes(rental.status);
         });
 
         if (duplicate) {
@@ -28,13 +28,13 @@ export default function ItemCard({ item, rentservice}) {
           return;
         }
         if (!res.ok) {
-          alert("대여 목록 조회 실패");
-          return;
-        }
+        alert("대여 목록 조회 실패");
+        return;
       }
-  } catch (error) {
-    console.error("중복 대여 여부 조회 실패:", error);
-  }
+      }
+    } catch (error) {
+      console.error("중복 대여 여부 조회 실패:", error);
+    }
 
 
 
@@ -45,7 +45,7 @@ export default function ItemCard({ item, rentservice}) {
   }
 
   return (
-      <>
+    <>
         <div className="card flex flex-col overflow-hidden p-0">
           <div className="flex main-card-img">
             <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
@@ -58,14 +58,14 @@ export default function ItemCard({ item, rentservice}) {
                 <span className="inline-block rounded-full h-1.5 w-1.5 bg-emerald-500" />
                 가능 {item.available}
               </span>
-              <span className="badge badge-red">
-                <span className="inline-block rounded-full h-1.5 w-1.5 bg-rose-500" />
-                대여중 {item.inUse}
-              </span>
-              <span className="badge badge-gray">
-                <span className="inline-block rounded-full h-1.5 w-1.5 bg-gray-300" />
-                준비중 {item.preparing}
-              </span>
+                <span className="badge badge-red">
+                  <span className="inline-block rounded-full h-1.5 w-1.5 bg-rose-500" />
+                  대여중 {item.inUse}
+                </span>
+                <span className="badge badge-gray">
+                  <span className="inline-block rounded-full h-1.5 w-1.5 bg-gray-300" />
+                  준비중 {item.preparing}
+                </span>
             </div>
 
             <button
@@ -73,17 +73,17 @@ export default function ItemCard({ item, rentservice}) {
               disabled={!isAvailable}
               className={`btn w-full ${isAvailable ? "btn-primary" : "btn-disabled"}`}
             >
-              {isAvailable ? "대여" : "불가"}
+                {isAvailable ? "대여하기" : "대여불가"}
             </button>
           </div>
         </div>
         {isModalOpen && (
           <RentalModal
-          item={item}
-          onClose={()=>setIsModalOpen(false)}
+            item={item}
+            onClose={()=>setIsModalOpen(false)}
             onSuccess={rentservice}
-            />
-        )}
-  </>
+          />
+      )}
+    </>
   );
 }

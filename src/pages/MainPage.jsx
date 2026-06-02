@@ -54,20 +54,33 @@ export default function MainPage() {
   if(isLoading){
     return (
       <main className="page">
-          <p style={{ textAlign: "center", color: "#71717a", marginTop: 200 }}>
-            물품을 불러오는 중...
-          </p>
+        <HeroBanner />
+        <div style={{ marginTop: "32px" }}>
+          <div style={{ textAlign: "center", marginTop: 120 }}>
+            <div className="loading-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <p style={{ color: "#71717a", fontSize: 14 }}>물품을 불러오는 중...</p>
+          </div>
+        </div>
       </main>
-    )
+    );
   }
 
   return (
     <main className="page">
       <HeroBanner />
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col">
         <label className="searchBar p-4">
-          <img src={searchIcon} alt="검색" className="w-4 h-4 mr-2 mb-1"/>
-          <input type="text" className="search" placeholder="물품의 이름을 입력하여 검색" onChange={(e)=>setInput(e.target.value)} ></input>
+          <img src={searchIcon} alt="검색" className="w-4 h-4 mr-2 mb-1" />
+          <input
+            type="text"
+            className="search"
+            placeholder="어떤 물품이 필요하세요? (ex. 우산, 보조배터리)"
+            onChange={(e)=>setInput(e.target.value)}
+          />
         </label>
         <CategorySidebar
           categories={categories}
@@ -75,7 +88,7 @@ export default function MainPage() {
           changeCategory={changeCategory}
         />
         <section>
-          <ItemGrid items={showItems} searchKeyword={input}/>
+          <ItemGrid items={showItems} searchKeyword={input} />
         </section>
       </div>
     </main>

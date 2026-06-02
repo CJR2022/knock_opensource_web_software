@@ -1,7 +1,7 @@
 export default function CategorySidebar({ categories, selectedIds, changeCategory }) {
   return (
-    <div className="mb-4">
-      <div className="flex flex-wrap gap-2">
+    <div className="scroll-x">
+      <div className="flex gap-2" style={{ width: "max-content", margin: "0 auto" }}>
         <button
           onClick={() => changeCategory("all")}
           className={selectedIds.length===0?"category-btn active":"category-btn"}
