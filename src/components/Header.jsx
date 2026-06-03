@@ -4,7 +4,8 @@ import userIcon from "../assets/icons/user.svg";
 import loginIcon from "../assets/icons/login.svg";
 
 const tabs = [
-  { id: "main", label: "메인", href: "/" },
+  { id: "main", label: "메인", href: "/landing" },
+  { id: "items", label: "물품대여", href: "/" },
   { id: "inquiry", label: "문의사항", href: "/inquiry" },
   { id: "admin", label: "관리자", href: "/admin" },
 ];
@@ -17,7 +18,7 @@ export default function Header() {
     <header className="header">
       <div className="header-inner">
         <div className="header-left">
-          <a href="/" className="logo">
+          <a href="/" className="logo"> {/*여기를 landing으로 할지 물품페이지로 할지만 정하면 될듯?*/}
             <div className="logo-icon">
               <span>K</span>
             </div>

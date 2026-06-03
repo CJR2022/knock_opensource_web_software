@@ -1,6 +1,5 @@
 import os
 
-from cv2 import data
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from db import get_connection
@@ -9,7 +8,6 @@ from pyzbar.pyzbar import decode
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime #대여 백엔드 처리하려고 가져옴 오늘시간
 
-app = Flask(__name__)
 app = Flask(__name__)
 CORS(app)
 
@@ -1563,68 +1561,73 @@ def admin_rental_reject(rental_id):
 
 #렌딩페이지를 위한 api
 # 활동이미지 출력하고 싶어서 새로운 db 테이블 만듬
+#주의사항으로는 LandingPage 요소와 무조건 동일하게 보내셈
 @app.route('/api/landing/stats', methods=['GET'])
 def get_landing_stats():
     conn = get_connection()
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                           SELECT COUNT(*) AS user_count
-                           FROM users
-                           WHERE role = 'student'
-                           """)
+                SELECT COUNT(*) AS user_count
+                FROM users
+                WHERE role = 'student'
+            """)
             user_count = cursor.fetchone()["user_count"]
 
             cursor.execute("""
-                           SELECT COALESCE(SUM(quantity), 0) AS total_rented_count
-                           FROM rentals
-                           WHERE status IN ('rented', 'overdue')
-                           """)
-            total_rented_count = cursor.fetchone()["total_rented_count"]
+                SELECT COUNT(*) AS active_user_count
+                FROM users
+                WHERE role = 'student'
+                  AND status = 'active'
+            """)
+            active_user_count = cursor.fetchone()["active_user_count"]
 
             cursor.execute("""
-                           SELECT i.id AS item_id,
-                                  i.name AS item_name,
-                                  COALESCE(SUM(
-                                      CASE
-                                          WHEN r.status IN ('rented', 'overdue') THEN r.quantity
-                                          ELSE 0
-                                      END
-                                  ), 0) AS rental_count
-                           FROM items i
-                                    LEFT JOIN rentals r ON r.item_id = i.id
-                           GROUP BY i.id, i.name
-                           ORDER BY rental_count DESC, i.id ASC
-                           """)
+                SELECT i.id AS item_id,
+                       i.name AS item_name,
+                       i.total_count,
+                       COALESCE(SUM(
+                           CASE
+                               WHEN r.status IN ('approved', 'rented', 'overdue')
+                               THEN r.quantity
+                               ELSE 0
+                           END
+                       ), 0) AS rental_count
+                FROM items i
+                LEFT JOIN rentals r ON r.item_id = i.id
+                GROUP BY i.id, i.name, i.total_count
+                ORDER BY rental_count DESC, i.id ASC
+            """)
             rental_rows = cursor.fetchall()
 
             rental_item_list = []
             for row in rental_rows:
                 rental_rate = 0
-                if total_rented_count > 0:
-                    rental_rate = round((row["rental_count"] / total_rented_count) * 100)
+                if row["total_count"] > 0:
+                    rental_rate = round((row["rental_count"] / row["total_count"]) * 100)
 
                 rental_item_list.append({
                     "item_id": row["item_id"],
                     "item_name": row["item_name"],
+                    "total_count": row["total_count"],
                     "rental_count": row["rental_count"],
                     "rental_rate": rental_rate
                 })
 
             cursor.execute("""
-                           SELECT COUNT(*) AS month_rental_count
-                           FROM rentals
-                           WHERE requested_return_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
-                             AND status IN ('rented', 'overdue', 'returned')
-                           """)
+                SELECT COUNT(*) AS month_rental_count
+                FROM rentals
+                WHERE requested_return_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+                  AND status IN ('rented', 'overdue', 'returned')
+            """)
             month_rental_count = cursor.fetchone()["month_rental_count"]
 
             cursor.execute("""
-                           SELECT COUNT(*) AS month_overdue_count
-                           FROM rentals
-                           WHERE requested_return_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
-                             AND status = 'overdue'
-                           """)
+                SELECT COUNT(*) AS month_overdue_count
+                FROM rentals
+                WHERE requested_return_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+                  AND status = 'overdue'
+            """)
             month_overdue_count = cursor.fetchone()["month_overdue_count"]
 
             overdue_rate = 0
@@ -1632,32 +1635,60 @@ def get_landing_stats():
                 overdue_rate = round((month_overdue_count / month_rental_count) * 100)
 
             cursor.execute("""
-                           SELECT i.name AS popular_item,
-                                  COUNT(*) AS popular_count
-                           FROM rentals r
-                                    JOIN items i ON r.item_id = i.id
-                           WHERE r.status IN ('approved', 'rented', 'overdue', 'returned')
-                           GROUP BY r.item_id, i.name
-                           ORDER BY popular_count DESC
-                           LIMIT 1
-                           """)
-            popular_row = cursor.fetchone()
+                SELECT i.id AS item_id,
+                       i.name AS popular_item,
+                       COUNT(*) AS popular_count
+                FROM rentals r
+                JOIN items i ON r.item_id = i.id
+                WHERE r.status IN ('approved', 'rented', 'overdue', 'returned')
+                GROUP BY i.id, i.name
+                ORDER BY popular_count DESC
+                LIMIT 5
+            """)
+            popular_item_list = cursor.fetchall()
 
             popular_item = "-"
             popular_count = 0
+            if len(popular_item_list) > 0:
+                popular_item = popular_item_list[0]["popular_item"]
+                popular_count = popular_item_list[0]["popular_count"]
 
-            if popular_row:
-                popular_item = popular_row["popular_item"]
-                popular_count = popular_row["popular_count"]
+            cursor.execute("""
+                SELECT COUNT(*) AS today_apply_count
+                FROM rentals
+                WHERE DATE(created_at) = CURDATE()
+            """)
+            today_apply_count = cursor.fetchone()["today_apply_count"]
+
+            cursor.execute("""
+                SELECT COUNT(*) AS today_pickup_count
+                FROM rentals
+                WHERE DATE(requested_pickup_at) = CURDATE()
+                  AND status IN ('approved', 'rented', 'overdue', 'returned')
+            """)
+            today_pickup_count = cursor.fetchone()["today_pickup_count"]
+
+            cursor.execute("""
+                SELECT COUNT(*) AS today_return_count
+                FROM rentals
+                WHERE DATE(requested_return_at) = CURDATE()
+                  AND status IN ('rented', 'overdue', 'returned')
+            """)
+            today_return_count = cursor.fetchone()["today_return_count"]
 
         return jsonify({
             "user_count": user_count,
+            "active_user_count": active_user_count,
             "rental_item_list": rental_item_list,
-            "overdue_rate": overdue_rate,
-            "month_overdue_count": month_overdue_count,
-            "month_rental_count": month_rental_count,
             "popular_item": popular_item,
-            "popular_count": popular_count
+            "popular_count": popular_count,
+            "popular_item_list": popular_item_list,
+            "month_rental_count": month_rental_count,
+            "month_overdue_count": month_overdue_count,
+            "overdue_rate": overdue_rate,
+            "today_apply_count": today_apply_count,
+            "today_pickup_count": today_pickup_count,
+            "today_return_count": today_return_count
         }), 200
 
     finally:

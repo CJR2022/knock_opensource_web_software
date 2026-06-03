@@ -1,0 +1,695 @@
+/* 전체 페이지 */
+.landing-page {
+    min-height: 100dvh;
+    overflow: hidden;
+    background-color: #2b2b2b;
+    color: white;
+}
+
+/* 여기서 padding 더 주면 각각 요소 간격 더 주는거임 */
+.landing-section {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 70px 24px;
+}
+
+.landing-smallname {
+    margin-bottom: 14px;
+    color: #f8d57e;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.landing-section-section-title-area {
+    max-width: 660px;
+    margin-bottom: 34px;
+}
+
+.landing-section-title {
+    margin-bottom: 16px;
+    color: white;
+    font-size: 44px;
+    font-weight: 800;
+    line-height: 1.12;
+}
+
+.landing-section-seolmyeong {
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+
+/* 메인 소개 영역 */
+.main-hero {
+    min-height: 560px;
+}
+
+.main-hero-sogae {
+    flex: 1 1 340px;
+    max-width: 560px;
+}
+
+.main-title {
+    margin-bottom: 24px;
+    color: white;
+    font-size: 76px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.main-haksen-sogae {
+    max-width: 560px;
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 16px;
+    line-height: 1.9;
+}
+
+.main-gotomulphon-btn {
+    margin-top: 34px;
+    padding: 15px 28px;
+    border: none;
+    border-radius: 14px;
+    background-color: #f8d57e;
+    color: #2b2b2b;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+
+/* 오늘 대여 현황 카드 */
+.today-daeyeo-hero {
+    flex: 1 1 320px;
+    width: 100%;
+    max-width: 460px;
+    min-height: 320px;
+    padding: 26px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 22px;
+    background-color: #333333;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.today-daeyeo-title {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 14px;
+}
+
+.today-daeyeo-chart {
+    height: 210px;
+    margin-top: 34px;
+}
+
+.today-daeyeo-chart div {
+    min-height: 38px;
+    border-radius: 16px 16px 6px 6px;
+}
+
+.today-daeyeo-chart-apply {
+    background-color: #bfaff2;
+}
+
+.today-daeyeo-pickup {
+    background-color: #f8d57e;
+}
+
+.today-daeyeo-return {
+    background-color: #8ee6c8;
+}
+
+.today-daeyeo-bottom {
+    margin-top: 18px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+}
+
+
+/* 통계 카드 */
+.tonggye-card {
+    min-height: 210px;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    background-color: #333333;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    cursor: default;
+}
+
+.tonggye-title {
+    margin-bottom: 14px;
+    color: rgba(255, 255, 255, 0.54);
+    font-size: 14px;
+}
+
+.tonggye-value {
+    min-height: 40px;
+    margin-bottom: 12px;
+    color: white;
+    font-size: 28px;
+    font-weight: 800;
+}
+
+.tonggye-sogae {
+    min-height: 22px;
+    margin-bottom: 14px;
+    color: rgba(255, 255, 255, 0.48);
+    font-size: 13px;
+}
+
+.tonggye-bar {
+    height: 10px;
+    overflow: hidden;
+    border-radius: 50px;
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.tonggye-bar-fill {
+    height: 100%;
+    border-radius: 50px;
+    background-color: #f8d57e;
+}
+
+.tonggye-list-scroll {
+    max-height: 150px;
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: none;
+}
+
+.tonggye-rental-rate {
+    margin-bottom: 14px;
+}
+
+.tonggye-rate-sunui {
+    margin-bottom: 8px;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 13px;
+}
+
+.tonggye-rate-sunui span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tonggye-rate-sunui p {
+    color: white;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.tonggye-hover-area {
+    position: relative;
+}
+
+/*detail 들어간거는 다 통계 자세히 보는 팝업 쪽임*/
+.tonggye-detail {
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: calc(100% + 14px);
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 16px;
+    background-color: #1f1f1f;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    /* 이거도 notion에 추가해줘 https://ddasik32.tistory.com/12*/
+    transform: scale(0.7);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.today-daeyeo-hero .tonggye-detail {
+    top: 24px;
+    bottom: auto;
+}
+
+.tonggye-hover-area:hover .tonggye-detail {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.tonggye-hover-area:hover {
+    border-color: rgba(248, 213, 126, 0.35);
+}
+
+.tonggye-detail-title {
+    margin: 0 0 14px 0;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.tonggye-detail-jeongbo {
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 13px;
+}
+
+.tonggye-detail-jeongbo span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tonggye-detail-jeongbo b {
+    color: #f8d57e;
+    white-space: nowrap;
+}
+
+.tonggye-detail-sogae {
+    margin: 8px 0 0 0;
+    color: rgba(255, 255, 255, 0.52);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.tonggye-detail-rank {
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 13px;
+}
+
+.tonggye-detail-rank span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tonggye-detail-rank b {
+    color: #f8d57e;
+    white-space: nowrap;
+}
+
+.tonggye-detail-sunui {
+    max-height: 280px;
+    overflow: hidden;
+}
+
+.tonggye-detail-sunui-scroll {
+    max-height: 210px;
+    overflow: hidden;
+}
+
+.tonggye-detail-sunui-list {
+    /* 대여비율 자동 스크롤 속도
+       참고글 https://www.heropy.dev/p/26YKpK
+       저거 말고 from to 쓰는 예제들도 좀 찾아봄
+       ps) 1초로 해보셈
+    */
+    animation: tonggye-detail-sunui-move 60s linear infinite;
+}
+
+.tonggye-detail-sunui-item {
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tonggye-detail-sunui-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+@keyframes tonggye-detail-sunui-move {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(-50%);
+    }
+}
+
+
+/* 핵심 기능 */
+.gineung-card {
+    min-height: 410px;
+    padding: 24px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    background-color: #333333;
+}
+
+.gineung-text {
+    min-height: 150px;
+}
+
+.gineung-number {
+    margin: 0 0 24px 0;
+    color: #f8d57e;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.gineung-text h3 {
+    margin-bottom: 14px;
+    color: white;
+    font-size: 25px;
+    font-weight: 800;
+}
+
+.gineung-text span {
+    color: rgb(255 255 255 / 0.79);
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.gineung-imgarea {
+    height: 190px;
+    border-radius: 20px;
+    background-color: #242424;
+}
+
+.gineung-imgarea-qr {
+    width: 145px;
+    padding: 18px;
+    border-radius: 18px;
+    background-color: #1f1f1f;
+    text-align: center;
+}
+
+.gineung-imgarea-qr-img {
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 14px auto;
+    display: block;
+    object-fit: contain;
+    border-radius: 10px;
+    background-color: white;
+}
+
+.gineung-imgarea-qr p {
+    margin: 0;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.gineung-imgarea-item {
+    width: 190px;
+    padding: 14px;
+    border-radius: 18px;
+    background-color: #1f1f1f;
+}
+
+.gineung-imgarea-item-img {
+    height: 70px;
+    margin-bottom: 14px;
+    border-radius: 14px;
+    background-color: #8ee6c8;
+}
+
+.gineung-imgarea-item-junbo p {
+    margin: 0 0 6px 0;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.gineung-imgarea-item-junbo span {
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 12px;
+}
+
+.gineung-imgarea-item-state {
+    margin-top: 14px;
+}
+
+.gineung-imgarea-item-state span {
+    width: 34px;
+    height: 8px;
+    border-radius: 50px;
+    background-color: #f8d57e;
+}
+
+.gineung-imgarea-item-state span:nth-child(2) {
+    background-color: #bfaff2;
+}
+
+.gineung-imgarea-item-state span:nth-child(3) {
+    background-color: #8ee6c8;
+}
+
+.gineung-imgarea-total {
+    width: 230px;
+    padding: 18px;
+    border-radius: 18px;
+    background-color: #1f1f1f;
+}
+
+.gineung-imgarea-total-line {
+    grid-template-columns: 44px 1fr;
+    margin-bottom: 14px;
+}
+
+.gineung-imgarea-total-line:last-child {
+    margin-bottom: 0;
+}
+
+.gineung-imgarea-total-line p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.gineung-imgarea-total-line span {
+    height: 10px;
+    border-radius: 50px;
+    background-color: #f8d57e;
+}
+
+.gineung-imgarea-total-line:nth-child(2) span {
+    width: 82%;
+    background-color: #8ee6c8;
+}
+
+.gineung-imgarea-total-line:nth-child(3) span {
+    width: 45%;
+    background-color: #bfaff2;
+}
+
+
+/* 이용 방법 */
+.howuse-card {
+    min-height: 190px;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    background-color: #333333;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.howuse-card:hover {
+    /* 여기 hover이랑 active에 box-shadow가 후광 역할을 해줌
+       불편하면 여기 제거 active가 hover이후에 계속 그거라는 뜻임 합칠까
+    */
+    transform: translateY(-4px);
+    border-color: rgba(248, 213, 126, 0.45);
+    box-shadow: 0 10px 25px rgba(248, 213, 126, 0.12);
+}
+
+.howuse-active {
+    transform: translateY(-4px);
+    border-color: rgba(248, 213, 126, 0.45);
+    box-shadow: 0 10px 25px rgba(248, 213, 126, 0.12);
+}
+
+.howuse-card p {
+    margin-bottom: 24px;
+    color: #f8d57e;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.howuse-card h3 {
+    margin-bottom: 14px;
+    color: white;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.howuse-card span {
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.usethis-area {
+    min-height: 520px;
+    padding: 28px;
+    align-items: flex-start;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 22px;
+    background-color: #303030;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.usethis-area-text {
+    width: 190px;
+    padding-top: 4px;
+}
+
+.usethis-area-text p {
+    margin-bottom: 24px;
+    color: #f8d57e;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.usethis-area-text h3 {
+    margin-bottom: 24px;
+    color: white;
+    font-size: 30px;
+    font-weight: 800;
+}
+
+.usethis-area-text span {
+    color: rgba(255, 255, 255, 0.58);
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.usethis-area-imgarea {
+    min-height: 470px;
+}
+
+.usethis-area-imgarea-box {
+    width: 100%;
+    max-width: 760px;
+    min-height: 320px;
+    border-radius: 18px;
+}
+
+.usethis-area-imgarea-img {
+    max-width: 100%;
+    max-height: 470px;
+    width: auto;
+    height: auto;
+    display: block;
+    object-fit: contain;
+    object-position: center;
+    border-radius: 18px;
+    background-color: white;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+}
+
+.usethis-area-return {
+    width: 100%;
+    max-width: 420px;
+    min-height: 230px;
+    padding: 36px;
+    border: 1px solid rgba(248, 213, 126, 0.25);
+    border-radius: 20px;
+    background-color: #242424;
+     /* 여기도 마찬가지로 후광 효과 */
+    box-shadow: 0 10px 25px rgba(248, 213, 126, 0.12);
+}
+
+.usethis-area-return p {
+    margin-bottom: 18px;
+    color: #f8d57e;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.usethis-area-return h3 {
+    margin-bottom: 16px;
+    color: white;
+    font-size: 34px;
+    font-weight: 800;
+}
+
+.usethis-area-return span {
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+
+/* 학생회 소개 */
+.council {
+    padding-bottom: 110px;
+    border-bottom: none;
+    overflow: hidden;
+}
+
+.council-info {
+    max-width: 640px;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+.council-buttons {
+    margin-top: 40px;
+}
+
+.council-buttons-btn {
+    padding: 13px 18px;
+    border-radius: 14px;
+    background-color: #bfaff2;
+    color: #2b2b2b;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+
+/* 학생회 활동사진 */
+.council-activity-area {
+    margin-top: 42px;
+    height: 175px;
+    overflow: hidden;
+    position: relative;
+}
+
+.council-activity-area-track {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: max-content;
+    animation: council-activity-area-move 90s linear infinite;
+}
+
+.council-activity-area-track-two {
+    animation: council-activity-area-move-two 90s linear infinite;
+}
+
+.council-activity-img {
+    width: 280px;
+    height: 175px;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+}
+
+@keyframes council-activity-area-move {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-100%);
+    }
+}
+
+@keyframes council-activity-area-move-two {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
