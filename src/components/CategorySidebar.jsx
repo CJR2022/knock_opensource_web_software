@@ -1,24 +1,24 @@
-export default function CategorySidebar({ items, selectedIds, changeItem }) {
+export default function CategorySidebar({ categories, selectedIds, changeCategory }) {
   return (
-    <div className="mb-4">
-      <div className="flex flex-wrap gap-2">
+    <div className="scroll-x">
+      <div className="flex gap-2" style={{ width: "max-content", margin: "0 auto" }}>
         <button
-          onClick={() => changeItem("all")}
+          onClick={() => changeCategory("all")}
           className={selectedIds.length===0?"category-btn active":"category-btn"}
         >
           전체
         </button>
 
-        {items.map((item) => {
-          let isActive = selectedIds.includes(item.id);
+        {categories.map((cat) => {
+          let isActive = selectedIds.includes(cat.id);
 
           return (
             <button
-              key={item.id}
-              onClick={() => changeItem(item.id)}
+              key={cat.id}
+              onClick={() => changeCategory(cat.id)}
               className={isActive?"category-btn active":"category-btn"}
             >
-              {item.name}
+              {cat.name}
             </button>
           );
         })}

@@ -1,5 +1,7 @@
 import { Link, useNavigate} from "react-router-dom";
 import { NavLink } from "react-router-dom";
+import userIcon from "../assets/icons/user.svg";
+import loginIcon from "../assets/icons/login.svg";
 
 const tabs = [
   { id: "main", label: "메인", href: "/landing" },
@@ -20,7 +22,7 @@ export default function Header() {
             <div className="logo-icon">
               <span>K</span>
             </div>
-            <span className="logo-text">KNOCK</span>
+            <span className="logo-text hidden sm:inline">KNOCK</span>
           </a>
 
           <nav className="nav-pill">
@@ -42,18 +44,26 @@ export default function Header() {
           </nav>
         </div>
         <div className="header-right">
-          {user ?(
-              <Link to="/myPage" className="btn btn-primary inline-block text-center pt-2">
-            마이 페이지
-          </Link>
-
-          ) :(
-
-        <Link to="/login" className="btn btn-primary inline-block text-center pt-2">
-            로그인
-          </Link>
-              )}
-          </div>
+          {user ? (
+            <>
+              <Link to="/mypage" className="btn btn-primary hidden sm:inline-block text-center pt-2">
+                마이 페이지
+              </Link>
+              <Link to="/mypage" className="sm:hidden flex items-center justify-center w-9 h-9 rounded-full bg-black text-white">
+                <img src={userIcon} alt="마이페이지" className="w-5 h-5 invert" />
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="btn btn-primary hidden sm:inline-block text-center pt-2">
+                로그인
+              </Link>
+              <Link to="/login" className="sm:hidden flex items-center justify-center w-9 h-9 rounded-full bg-black text-white">
+                <img src={loginIcon} alt="로그인" className="w-5 h-5 invert" />
+              </Link>
+            </>
+          )}
+        </div>
       </div>
         </header>
   );

@@ -5,6 +5,7 @@ from flask_cors import CORS
 from db import get_connection
 import cv2
 from pyzbar.pyzbar import decode
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime #대여 백엔드 처리하려고 가져옴 오늘시간
 
 app = Flask(__name__)
@@ -175,6 +176,7 @@ def signup():
         studentid = request.form.get('studentid')
         password = request.form.get('password')
         phone = request.form.get('phone')
+        hashed_password = generate_password_hash(password)
 
         file = request.files['qrimage']
         filename = file.filename
@@ -202,7 +204,7 @@ def signup():
                                                 block_period, created_at)
                              values (%s, %s, %s, %s, 'student', 'pending', 0, NULL, NOW()) \
                              """
-                cursor.execute(insert_sql, (studentid, password, name, phone))
+                cursor.execute(insert_sql, (studentid, hashed_password, name, phone))
 
             conn.commit()
             print("db 저장됨")
@@ -247,7 +249,7 @@ def login():
                 db_overdue_count = user['overdue_count']
                 db_id = user['id']
 
-                if db_password != password:
+                if not check_password_hash(db_password, password):
                     return jsonify({"message": "비밀번호가 일치하지 않습니다"}), 401
                 return jsonify({"message": "로그인 성공"
                                    , "user": {"id": db_id,
@@ -401,7 +403,6 @@ def get_items():
         return jsonify(rows), 200
     finally:
         conn.close()
-
 
 @app.route('/api/dashboard/kpi', methods=['GET'])
 def dashboard_kpi():
@@ -1048,6 +1049,179 @@ def save_admin_inquiry_answer(inquiry_id):
         conn.close()
 
 
+@app.route('/api/admin/schedule-init-data', methods=['GET'])
+def get_schedule_init_data():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id, name, student_number FROM users WHERE role = 'admin'")
+            admins = cursor.fetchall()
+            cursor.execute("""
+                           SELECT w.id,
+                                  w.work_date,
+                                  TIME_FORMAT(w.start_time, '%H:%i') AS start_time,
+                                  TIME_FORMAT(w.end_time, '%H:%i')   AS end_time,
+                                  w.admin_id,
+                                  u.name                             AS admin_name
+                           FROM work_schedules w
+                                    LEFT JOIN users u ON w.admin_id = u.id
+                           ORDER BY w.start_time ASC
+                           """)
+            schedules = cursor.fetchall()
+
+            cursor.execute("SELECT id, closed_date, reason FROM closed_days")
+            closed_days = cursor.fetchall()
+            for row in closed_days:
+                if row["closed_date"]:
+                    row["closed_date"] = row["closed_date"].strftime("%Y-%m-%d")
+
+        return jsonify({
+            "admins": admins,
+            "schedules": schedules,
+            "closedDays": closed_days
+        }), 200
+    except Exception as e:
+        return jsonify({"message": "서버 오류"}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/admin/work-schedules', methods=['POST'])
+def add_work_schedule():
+    data = request.get_json()
+    work_date, start_time = data.get("work_date"), data.get("start_time")
+    end_time, admin_id = data.get("end_time"), data.get("admin_id")
+    if not all([work_date, start_time, end_time, admin_id]):
+        return jsonify({"message": "입력을 완료해주세요"}), 400
+    if start_time >= end_time:
+        return jsonify({"message": "종료 시간은 시작 시간보다 늦어야 합니다."}), 400
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           SELECT id
+                           FROM work_schedules
+                           WHERE work_date = %s
+                             AND start_time < %s
+                             AND end_time > %s
+                           """, (work_date, end_time, start_time))
+
+            if cursor.fetchone():
+                return jsonify({"message": "해당 시간에 이미 일정이 존재합니다"}), 409
+
+            cursor.execute("""
+                           INSERT INTO work_schedules (work_date, start_time, end_time, admin_id)
+                           VALUES (%s, %s, %s, %s)
+                           """, (work_date, start_time, end_time, admin_id))
+        conn.commit()
+        return jsonify({"message": "근무 등록 완료"}), 201
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": "서버 오류"}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/admin/work-schedules/<int:schedule_id>', methods=['PUT', 'DELETE'])
+def manage_single_schedule(schedule_id):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            if request.method == 'PUT':
+                admin_id = request.get_json().get("admin_id")
+                cursor.execute("UPDATE work_schedules SET admin_id = %s WHERE id = %s", (admin_id, schedule_id))
+                conn.commit()
+                return jsonify({"message": "수정 완료"}), 200
+
+            elif request.method == 'DELETE':
+                cursor.execute("DELETE FROM work_schedules WHERE id = %s", (schedule_id,))
+                conn.commit()
+                return jsonify({"message": "삭제 완료"}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": "서버 오류"}), 500
+    finally:
+        conn.close()
+@app.route('/api/admin/closed-days', methods=['POST'])
+def add_closed_day():
+    data = request.get_json()
+    closed_date, reason = data.get("closed_date"), data.get("reason", "사유 없음")
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id FROM closed_days WHERE closed_date = %s", (closed_date,))
+            if cursor.fetchone():
+                return jsonify({"message": "이미 휴무일로 지정된 날짜입니다."}), 409
+
+            cursor.execute("INSERT INTO closed_days (closed_date, reason) VALUES (%s, %s)", (closed_date, reason))
+        conn.commit()
+        return jsonify({"message": "등록 완료"}), 201
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": "서버 오류"}), 500
+    finally:
+        conn.close()
+@app.route('/api/admin/closed-days/<int:day_id>', methods=['DELETE'])
+def remove_closed_day(day_id):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("DELETE FROM closed_days WHERE id = %s", (day_id,))
+        conn.commit()
+        return jsonify({"message": "삭제 완료"}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": "서버 오류"}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/closed-days', methods=['GET'])
+def get_public_closed_days():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id, closed_date, reason FROM closed_days")
+            rows = cursor.fetchall()
+            for row in rows:
+                if row["closed_date"]:
+                    # 프론트엔드와 비교하기 위해 YYYY-MM-DD 형식으로 맞춰줌
+                    row["closed_date"] = row["closed_date"].strftime("%Y-%m-%d")
+            return jsonify(rows), 200
+    except Exception as e:
+        print(f"휴무일 조회 에러: {e}")
+        return jsonify({"message": "서버 오류"}), 500
+    finally:
+        conn.close()
+
+
+@app.route('/api/users/<int:user_id>/inquiries', methods=['GET'])
+def get_user_inquiries(user_id):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                           SELECT i.id,
+                                  i.title,
+                                  i.content,
+                                  i.status,
+                                  DATE_FORMAT(i.created_at, '%%Y-%%m-%%d %%H:%%i') AS created_at,
+                                  a.content                                        AS answer_content,
+                                  DATE_FORMAT(a.created_at, '%%Y-%%m-%%d %%H:%%i') AS answered_at
+                           FROM inquiries i
+                                    LEFT JOIN inquiry_answers a ON a.id = (SELECT ia.id
+                                                                           FROM inquiry_answers ia
+                                                                           WHERE ia.inquiry_id = i.id
+                                                                           ORDER BY ia.created_at DESC, ia.id
+                                                                                                  DESC LIMIT 1
+                               )
+                           WHERE i.user_id = %s
+                           ORDER BY i.created_at DESC
+                           """, (user_id,))
+            rows = cursor.fetchall()
+        return jsonify(rows), 200
+
+    except Exception as e:
+        return jsonify({"message": "문의 내역을 불러오는 중 에러가 발생했습니다."}), 500
 # 관리자 대여 목록 가져오기
 # 가져오는게 조금 많긴함 id 대여 물품 상태 등등
 # 근무표도 가져와서 대여자가 누구인지도 보여줘야해서 코드가 많이 길어졌음 프론트처리도 가능할거 같은데

@@ -89,7 +89,13 @@ return (
 <div className="flex justify-center items-center gap-3 text-xs text-gray-500 mt-6 mb-8">
             <Link to="/signup" className="hover:underline">회원가입</Link>
             <span className="text-gray-300">|</span>
-            <a href="#find-pw" className="hover:underline">비밀번호 찾기</a>
+            <a href="#find-pw" className="hover:underline"
+            onClick={(e) => {
+                e.preventDefault();
+                alert("학생회실에 방문해 주세요 !");
+            }}
+            >
+            비밀번호 찾기</a>
           </div>
         </div>
 
