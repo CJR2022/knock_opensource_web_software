@@ -7,7 +7,8 @@ import cv2
 from pyzbar.pyzbar import decode
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime #대여 백엔드 처리하려고 가져옴 오늘시간
-
+from solapi import SolapiMessageService
+from solapi.model import RequestMessage
 app = Flask(__name__)
 CORS(app)
 
@@ -1475,14 +1476,18 @@ def admin_rental_approve(rental_id):
             cursor.execute("""
                            SELECT r.id,
                                   r.quantity,
-                                  ( i.total_count - i.preparing_count - COALESCE((SELECT SUM(gigan.quantity) FROM rentals gigan
-                                                                                  WHERE gigan.item_id = r.item_id
-                                                                                    AND gigan.id != r.id
+                                  u.phone,
+                                  i.name                                                                                                                                                   AS item_name,
+                                  (i.total_count - i.preparing_count - COALESCE((SELECT SUM(gigan.quantity)
+                                                                                 FROM rentals gigan
+                                                                                 WHERE gigan.item_id = r.item_id
+                                                                                   AND gigan.id != r.id
                                                                                     AND gigan.status IN ('approved', 'rented', 'overdue')
                                                                                     AND ( gigan.status = 'overdue' OR ( gigan.requested_pickup_at < r.requested_return_at AND gigan.requested_return_at > r.requested_pickup_at))
                                                                                     ), 0)) AS available
                            FROM rentals r
                                     JOIN items i ON r.item_id = i.id
+                                    JOIN users u ON r.user_id = u.id
                            WHERE r.id = %s
                              AND r.status = 'pending'
                            """, (rental_id,))
@@ -1514,18 +1519,35 @@ def admin_rental_approve(rental_id):
                     "message": "이미 처리된 예약입니다."
                 }), 400
 
+
         conn.commit()
+        try:
+            message_service = SolapiMessageService(
+                api_key=os.getenv("SOLAPI_API_KEY"),
+                api_secret=os.getenv("SOLAPI_API_SECRET")
+            )
+            message = RequestMessage(
+                from_=os.getenv("SOLAPI_FROM_NUMBER"),
+                to=rental["phone"],
+                subject="소프트웨어학부 학생회 Knock",
+                text=f"[소프트웨어학부 학생회 Knock]\n\n신청하신 '{rental['item_name']}' 물품 대여가 승인되었습니다."
+            )
+
+            message_service.send(message)
+            print(f"SMS 발송 성공: {rental['phone']}")
+        except Exception as sms_error:
+            print(f"SMS 발송 실패: {str(sms_error)}")
+
         return "", 200
 
     except Exception:
         conn.rollback()
         return jsonify({
-        "message": "예약 승인 처리 중 오류가 발생했습니다."
+            "message": "예약 승인 처리 중 오류가 발생했습니다."
         }), 500
 
     finally:
         conn.close()
-
 
 # 예약 거절
 # 수정사항 1. 장난으로 거절하는 관리자 로그 관리 추가했음
