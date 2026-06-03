@@ -1,5 +1,6 @@
 import {useState, useRef} from "react";
 import {Link, useNavigate} from "react-router-dom";
+import alert2 from "sweetalert2";
 
 export default function SignUpPage() {
     const [name, setName] = useState("");
@@ -23,7 +24,17 @@ export default function SignUpPage() {
     };
     const checksignUp = async () => {
         if (!name || !studentid || !password || !phone || !qrimage) {
-            alert("모든 회원정보를 입력해 주세요.")
+            alert2.fire({
+                text: "모든 회원정보를 입력해 주세요.",
+                confirmButtonText: "확인",
+                confirmButtonColor: "#09090b",
+                customClass: {
+                    title: "custom-popup-title",
+                    htmlContainer: "custom-popup-content",
+                    confirmButton: "custom-confirm"
+                }
+
+            });
             return;
         }
 
@@ -42,16 +53,41 @@ export default function SignUpPage() {
             });
             const result = await response.json();
             if (response.ok) {
-                alert("회원가입이 완료 되었습니다");
-                navigate("/login");
-
+                alert2.fire({
+                    text: "회원가입이 완료 되었습니다",
+                    confirmButtonText: "확인",
+                    confirmButtonColor: "#09090b",
+                    customClass: {
+                        title: "custom-popup-title",
+                        htmlContainer: "custom-popup-content",
+                        confirmButton: "custom-confirm"
+                    }
+                }).then(() => {
+                    navigate("/login");
+                });
             } else {
-                alert("가입 실패 : " + result.message);
+                alert2.fire({
+                    text: "가입 실패 : " + result.message,
+                    confirmButtonText: "확인",
+                    confirmButtonColor: "#09090b",
+                    customClass: {
+                        title: "custom-popup-title",
+                        htmlContainer: "custom-popup-content",
+                        confirmButton: "custom-confirm"
+                    }
+                });
             }
         } catch (error) {
             console.log(error);
-            alert("서버연결오류")
-
+            alert2.fire({
+                text: "서버연결오류",
+                confirmButtonText: "확인",
+                customClass: {
+                    title: "custom-popup-title",
+                    htmlContainer: "custom-popup-content",
+                    confirmButton: "custom-confirm"
+                }
+            });
         }
     }
 

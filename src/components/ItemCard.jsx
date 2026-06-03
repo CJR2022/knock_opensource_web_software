@@ -1,48 +1,72 @@
 import {useState} from "react";
 import RentalModal from "./RentalModal";
+import alert2 from "sweetalert2";
 
-export default function ItemCard({ item, rentservice}) {
-  const isAvailable = item.available > 0;
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const handleclick = async () =>{
-    let saveduser= sessionStorage.getItem("user");
-    if(!saveduser){
-      saveduser=localStorage.getItem("user");
-    }
-    if (!saveduser){
-      alert("로그인을 해주세요 ");
-      return;
-    }
-    const userInfo = JSON.parse(saveduser);
-    try {
-      const res = await fetch(`http://localhost:8000/api/rentals?user_id=${userInfo.id}`);
-      if (res.ok) {
-        const myRentals = await res.json();
-        const duplicate = myRentals.find(rental =>{
-          const activeStatuses = ["pending", "approved", "rented", "overdue"];
-          return rental.item_id == item.id && activeStatuses.includes(rental.status);
-        });
-
-        if (duplicate) {
-          alert(` 물품을 대여 승인 중이거나 대여중인 상태입니다`);
-          return;
+export default function ItemCard({item, rentservice}) {
+    const isAvailable = item.available > 0;
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const handleclick = async () => {
+        let saveduser = sessionStorage.getItem("user");
+        if (!saveduser) {
+            saveduser = localStorage.getItem("user");
         }
-        if (!res.ok) {
-        alert("대여 목록 조회 실패");
-        return;
-      }
-      }
-    } catch (error) {
-      console.error("중복 대여 여부 조회 실패:", error);
+        if (!saveduser) {
+            alert2.fire({
+                text: "로그인을 해주세요 ",
+                confirmButtonText: "확인",
+                confirmButtonColor: "#09090b",
+                customClass: {
+                    title: "custom-popup-title",
+                    htmlContainer: "custom-popup-content",
+                    confirmButton: "custom-confirm"
+                }
+            });
+            return;
+        }
+        const userInfo = JSON.parse(saveduser);
+        try {
+            const res = await fetch(`http://localhost:8000/api/rentals?user_id=${userInfo.id}`);
+            if (res.ok) {
+                const myRentals = await res.json();
+                const duplicate = myRentals.find(rental => {
+                    const activeStatuses = ["pending", "approved", "rented", "overdue"];
+                    return rental.item_id == item.id && activeStatuses.includes(rental.status);
+                });
+
+                if (duplicate) {
+                    alert2.fire({
+                        text: ` 물품을 대여 승인 중이거나 대여중인 상태입니다`,
+                        confirmButtonText: "확인",
+                        confirmButtonColor: "#09090b",
+                        customClass: {
+                            title: "custom-popup-title",
+                            htmlContainer: "custom-popup-content",
+                            confirmButton: "custom-confirm"
+                        }
+                    });
+                    return;
+                }
+                if (!res.ok) {
+                    alert2.fire({
+                        text: "대여 목록 조회 실패",
+                        confirmButtonText: "확인",
+                        confirmButtonColor: "#09090b",
+                        customClass: {
+                            title: "custom-popup-title",
+                            htmlContainer: "custom-popup-content",
+                            confirmButton: "custom-confirm"
+                        }
+                    });
+                    return;
+                }
+            }
+        } catch (error) {
+            console.error("중복 대여 여부 조회 실패:", error); /*여긴 alert 안씀??*/
+        }
+
+
+        setIsModalOpen(true);
     }
-
-
-
-
-
-
-    setIsModalOpen(true);
-  }
 
   return (
     <>

@@ -186,7 +186,7 @@ def signup():
         if (os.path.exists(filepath)):
             os.remove(filepath)
         if not qrtext:
-            return jsonify({"message": "qr 코드 인식 불가"}), 400
+            return jsonify({"message": "QR 코드 인식 불가"}), 400
 
         if studentid not in qrtext:
             print("가입실패")
@@ -251,7 +251,7 @@ def login():
 
                 if not check_password_hash(db_password, password):
                     return jsonify({"message": "비밀번호가 일치하지 않습니다"}), 401
-                return jsonify({"message": "로그인 성공"
+                return jsonify({"message": "로그인에 성공하였습니다."
                                    , "user": {"id": db_id,
                                               "studentid": studentid,
                                               "role": db_role,
