@@ -20,8 +20,8 @@ export default function App() {
     <div className="app">
       <Header />
       <Routes>
-        <Route path="/" element={<LandingPage  />} />
-        <Route path="/items" element={<MainPage />} />
+        <Route path="/" element={<MainPage  />} />
+        <Route path="/landing" element={<LandingPage />} />
         <Route path="/inquiry" element={<InquiryPage />}/>
         <Route path="/myPage" element={<MyPage />}/>
         <Route path="/login" element={<LoginPage />}/>

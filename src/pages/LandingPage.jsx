@@ -123,7 +123,7 @@ export default function LandingPage() {
                         대여 가능한 물품들을 한 곳에서 확인할 수 있습니다.
                     </p>
 
-                    <button className="main-gotomulphon-btn" onClick={() => navigate("/items")}>
+                    <button className="main-gotomulphon-btn" onClick={() => navigate("/")}>
                         물품대여 바로가기
                     </button>
                 </div>
