@@ -35,7 +35,7 @@ export default function ScheduleManager() {
 
     const fetchAllData = async () => {
         try {
-            const res = await fetch('http://localhost:8000/api/admin/schedule-init-data');
+            const res = await fetch(' /api/admin/schedule-init-data');
             if (res.ok) {
                 const data = await res.json();
                 setAdminList(data.admins);
@@ -81,7 +81,7 @@ export default function ScheduleManager() {
 
         const targetDayStr = dbWeekDays[selectedDate.getDay()];
         try {
-            const res = await fetch('http://localhost:8000/api/admin/work-schedules', {
+            const res = await fetch(' /api/admin/work-schedules', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -152,7 +152,7 @@ export default function ScheduleManager() {
         if (!result.isConfirmed) return;
 
         try {
-            const res = await fetch(`http://localhost:8000/api/admin/work-schedules/${scheduleId}`, {method: 'DELETE'});
+            const res = await fetch(` /api/admin/work-schedules/${scheduleId}`, {method: 'DELETE'});
             if (res.ok) {
                 alert2.fire({
                     text: "삭제되었습니다.",
@@ -206,7 +206,7 @@ export default function ScheduleManager() {
         }
 
         try {
-            const res = await fetch(`http://localhost:8000/api/admin/work-schedules/${scheduleId}`, {
+            const res = await fetch(` /api/admin/work-schedules/${scheduleId}`, {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({admin_id: editAdminId})
@@ -269,7 +269,7 @@ export default function ScheduleManager() {
         }
 
         try {
-            const res = await fetch('http://localhost:8000/api/admin/closed-days', {
+            const res = await fetch(' /api/admin/closed-days', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({closed_date: getFormattedDate(selectedDate), reason: closeReason})
@@ -335,7 +335,7 @@ export default function ScheduleManager() {
         if (!result.isConfirmed) return;
 
         try {
-            const res = await fetch(`http://localhost:8000/api/admin/closed-days/${dayId}`, {method: 'DELETE'});
+            const res = await fetch(` /api/admin/closed-days/${dayId}`, {method: 'DELETE'});
             if (res.ok) {
                 alert2.fire({
                     text: "휴무일이 해제되었습니다.",

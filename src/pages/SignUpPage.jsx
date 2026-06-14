@@ -46,7 +46,7 @@ export default function SignUpPage() {
         formdata.append("phone", phone);
         formdata.append("qrimage", qrimage);
         try {
-            const response = await fetch("http://localhost:8000/api/signup", {
+            const response = await fetch("/api/signup", {
                 method: "POST",
                 body: formdata,
 
@@ -124,7 +124,7 @@ export default function SignUpPage() {
                         onChange={(e) => setName(e.target.value)}
                     />
                     <input
-                        type="password"
+                        type="text"
                         placeholder="학번을 입력하세요"
                         value={studentid}
                         className="w-full border border-gray-300 p-3 text-sm rounded-lg focus:border-black"

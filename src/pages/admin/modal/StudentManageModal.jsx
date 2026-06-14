@@ -26,7 +26,7 @@ export default function StudentManageModal({student, onClose, onUpdate}) {
 
             setLoading(true);
 
-            fetch(`http://localhost:8000/api/students/${student.id}/block`, {
+            fetch(`/api/students/${student.id}/block`, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({type}),
@@ -85,7 +85,7 @@ export default function StudentManageModal({student, onClose, onUpdate}) {
             if (!result.isConfirmed) return;
 
             setLoading(true);
-            fetch(`http://localhost:8000/api/students/${student.id}/unblock`, {
+            fetch(`/api/students/${student.id}/unblock`, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
             })

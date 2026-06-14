@@ -12,7 +12,7 @@ const faqList = [
     {
         id: 1,
         munititle: "물품을 파손해 버렸는데 어떻게 하나요?",
-        municontent: "물품이 파손된 경우 반납시 학생회 근무자에게 말씀해 주세요. 그 후에 추가적인 조치가 있습니다. 물품이 파손된 경우 반납시 학생회 근무자에게 말씀해 주세요. 그 후에 추가적인 조치가 있습니다. 물품이 파손된 경우 반납시 학생회 근무자에게 말씀해 주세요. 그 후에 추가적인 조치가 있습니다.",
+        municontent: "물품이 파손된 경우 반납시 학생회 근무자에게 말씀해 주세요. 그 후에 추가적인 조치가 있습니다.",
     },
     {
         id: 2,
@@ -21,38 +21,13 @@ const faqList = [
     },
     {
         id: 3,
-        munititle: "?",
-        municontent: "립니다.",
+        munititle: "물품 수령시간에 못갈것 같아요.",
+        municontent: "수령시간 2시간 전까지는 와주시면 됩니다. 2시간 이후에는 자동 거절되며 연체가 올라 불이익을 받을수 있습니다.",
     },
     {
-        id: 2,
-        munititle: "물품 반납을 일찍해도 괜찮을까요?",
-        municontent: "네, 반납 예정일보다 일찍 반납해도 괜찮습니다. 반납시 학생회 인원에게 학번과 이름을 말씀주시면 반납처리를 해드립니다.",
-    },
-    {
-        id: 2,
-        munititle: "물품 반납을 일찍해도 괜찮을까요?",
-        municontent: "네, 반납 예정일보다 일찍 반납해도 괜찮습니다. 반납시 학생회 인원에게 학번과 이름을 말씀주시면 반납처리를 해드립니다.",
-    },
-    {
-        id: 2,
-        munititle: "물품 반납을 일찍해도 괜찮을까요?",
-        municontent: "네, 반납 예정일보다 일찍 반납해도 괜찮습니다. 반납시 학생회 인원에게 학번과 이름을 말씀주시면 반납처리를 해드립니다.",
-    },
-    {
-        id: 2,
-        munititle: "물품 반납을 일찍해도 괜찮을까요?",
-        municontent: "네, 반납 예정일보다 일찍 반납해도 괜찮습니다. 반납시 학생회 인원에게 학번과 이름을 말씀주시면 반납처리를 해드립니다.",
-    },
-    {
-        id: 2,
-        munititle: "물품 반납을 일찍해도 괜찮을까요?",
-        municontent: "네, 반납 예정일보다 일찍 반납해도 괜찮습니다. 반납시 학생회 인원에게 학번과 이름을 말씀주시면 반납처리를 해드립니다.",
-    },
-    {
-        id: 2,
-        munititle: "물품 반납을 일찍해도 괜찮을까요?",
-        municontent: "네, 반납 예정일보다 일찍 반납해도 괜찮습니다. 반납시 학생회 인원에게 학번과 이름을 말씀주시면 반납처리를 해드립니다.",
+        id: 4,
+        munititle: "연체는 어떻게 확인하나요?",
+        municontent: "마이 페이지에 이동하시면 확인하실수 있습니다. 연체는 3회 이상 쌓이게 될시 불이익을 받을 수 있습니다.",
     },
 ];
 
@@ -80,7 +55,7 @@ export default function InquiryPage() { /*로그인 구현시 props로 받고 US
         window.scrollTo(0, 0);
 
         if (userid !== "") {
-            fetch("http://localhost:8000/api/users/" + userid + "/status")
+            fetch(" /api/users/" + userid + "/status")
                 .then((res) => res.json())
                 .then((data) => {
                     setuserstatus(data.status);
@@ -120,7 +95,7 @@ export default function InquiryPage() { /*로그인 구현시 props로 받고 US
             return;
         }
 
-        fetch("http://localhost:8000/api/inquiries", {
+        fetch(" /api/inquiries", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

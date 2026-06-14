@@ -12,12 +12,12 @@ export default function MainPage() {
   const [input, setInput] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/categories")
+    fetch("/api/categories")
       .then((res) => res.json())
       .then((data) => setCategories(data))
       .catch((err) => console.error("카테고리 불러오기 실패:", err));
 
-    fetch("http://localhost:8000/api/items")
+    fetch("/api/items")
       .then((res) => res.json())
       .then((data) => setItems(data))
       .catch((err) => console.error("물품 불러오기 실패:", err))
@@ -54,7 +54,7 @@ export default function MainPage() {
   if(isLoading){
     return (
       <main className="page">
-        <HeroBanner />
+        <HeroBanner/>
         <div style={{ marginTop: "32px" }}>
           <div style={{ textAlign: "center", marginTop: 120 }}>
             <div className="loading-dots">

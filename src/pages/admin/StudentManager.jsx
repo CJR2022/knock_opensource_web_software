@@ -28,7 +28,7 @@ export default function StudentManager() {
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                fetch(`http://localhost:8000/api/students/${id}/approve`, {
+                fetch(` /api/students/${id}/approve`, {
                     method: "POST",
                     headers: {"Content-Type": "application/json"}
                 })
@@ -76,7 +76,7 @@ export default function StudentManager() {
     };
 
     useEffect(() => {
-        fetch("http://localhost:8000/api/students/pending")
+        fetch(" /api/students/pending")
             .then((res) => res.json())
             .then((data) => setPendingStudents(data))
             .catch((err) => console.error("신규신청 학생정보 불러오기 실패", err));
@@ -87,7 +87,7 @@ export default function StudentManager() {
     }, []);
 
     const fetchActiveStudents = () => {
-        fetch("http://localhost:8000/api/students/active")
+        fetch(" /api/students/active")
             .then((res) => res.json())
             .then((data) => setActiveStudents(data))
             .catch((err) => console.error("기존 학생정보 불러오기 실패", err));

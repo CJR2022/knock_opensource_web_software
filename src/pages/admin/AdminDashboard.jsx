@@ -26,13 +26,13 @@ export default function AdminDashboard() {
   const [heatmap, setHeatmap] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/dashboard/kpi")
+    fetch("/api/dashboard/kpi")
       .then((res) => res.json())
       .then((data) => setKpi(data))
       .catch((err) => console.error("KPI 불러오기 실패:", err));
   }, []);
   useEffect(()=>{
-    fetch("http://localhost:8000/api/dashboard/stats")
+    fetch("/api/dashboard/stats")
     .then((res) => res.json())
     .then((data) =>{
        setCategories(data.categories);
@@ -41,7 +41,7 @@ export default function AdminDashboard() {
     .catch((err) => console.error("데이터 불러오기 실패: ", err));
   }, []);
   useEffect(()=>{
-    fetch("http://localhost:8000/api/dashboard/today-schedule")
+    fetch("/api/dashboard/today-schedule")
     .then((res) => res.json())
     .then((data) =>{
        setTodayPickups(data.pickups);
@@ -50,7 +50,7 @@ export default function AdminDashboard() {
     .catch((err) => console.error("오늘 일정 불러오기 실패: ", err));
   }, []);
   useEffect(()=>{
-    fetch("http://localhost:8000/api/dashboard/heatmap")
+    fetch("/api/dashboard/heatmap")
     .then((res) => res.json())
     .then((data) => setHeatmap(data))
     .catch((err) => console.error("히트맵 불러오기 실패: ", err));

@@ -38,7 +38,7 @@ export default function ItemManager() {
     function getmulphon() {
         setmulphoncall(true);
 
-        fetch("http://localhost:8000/api/items")
+        fetch("/api/items")
             .then((res) => res.json())
             .then((data) => {
                 setmulphonlist(data);
@@ -110,7 +110,7 @@ export default function ItemManager() {
     function getborower(itemid) {
         setborrowercall(true);
 
-        fetch("http://localhost:8000/api/items/" + itemid + "/borrowers")
+        fetch(" /api/items/" + itemid + "/borrowers")
             .then((res) => res.json())
             .then((data) => {
                 setborrowerlist(data);
@@ -141,7 +141,7 @@ export default function ItemManager() {
 
     /* 물품 관리 구현 */
     function getcategory() {
-        fetch("http://localhost:8000/api/categories")
+        fetch(" /api/categories")
             .then((res) => res.json())
             .then((data) => {
                 setcategorylist(data);
@@ -183,7 +183,7 @@ export default function ItemManager() {
             dmulphon_data.append("image", mulphonimage);
         }
 
-        fetch("http://localhost:8000/api/items/" + selectmulphon.id + "/update", {
+        fetch(" /api/items/" + selectmulphon.id + "/update", {
             method: "POST",
             body: dmulphon_data,
         })
@@ -221,7 +221,7 @@ export default function ItemManager() {
             dmulphon_data.append("image", mulphonimage);
         }
 
-        fetch("http://localhost:8000/api/items/add", {
+        fetch(" /api/items/add", {
             method: "POST",
             body: dmulphon_data,
         })
@@ -251,7 +251,7 @@ export default function ItemManager() {
                 return;
             }
 
-            fetch("http://localhost:8000/api/items/" + selectmulphon.id + "/delete", {
+            fetch(" /api/items/" + selectmulphon.id + "/delete", {
                 method: "POST",
             })
                 .then((res) => {
@@ -299,7 +299,7 @@ export default function ItemManager() {
     function getmulphonlog(itemid) {
         setmulphonlogcall(true);
 
-        fetch("http://localhost:8000/api/items/" + itemid + "/logs")
+        fetch(" /api/items/" + itemid + "/logs")
             .then((res) => res.json())
             .then((data) => {
                 setmulphonloglist(data);

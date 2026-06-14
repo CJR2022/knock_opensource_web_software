@@ -1,15 +1,61 @@
 import os
+from functools import wraps
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, session
 from flask_cors import CORS
 from db import get_connection
 import cv2
 from pyzbar.pyzbar import decode
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime #대여 백엔드 처리하려고 가져옴 오늘시간
+from solapi import SolapiMessageService
+from solapi.model import RequestMessage
 
 app = Flask(__name__)
-CORS(app)
+app.secret_key = os.getenv("FLASK_SECRET_KEY")
+
+CORS(app, origins=[
+    "https://cbnu-knock.mooo.com",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
+])
+
+def check_admin():
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return jsonify({"message": "로그인이 필요합니다."}), 401
+
+    conn = get_connection()
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT id, role FROM users WHERE id = %s",
+                (user_id,)
+            )
+            user = cursor.fetchone()
+
+            if user is None:
+                return jsonify({"message": "사용자를 찾을 수 없습니다."}), 401
+
+            if user["role"] != "admin":
+                return jsonify({"message": "관리자 권한이 필요합니다."}), 403
+
+        return None
+
+    finally:
+        conn.close()
+
+def admin_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        admin_check = check_admin()
+        if admin_check:
+            return admin_check
+        return func(*args, **kwargs)
+
+    return wrapper
 
 Uploadfolder = "uploads"
 os.makedirs(Uploadfolder, exist_ok=True)
@@ -136,7 +182,7 @@ def auto_reject_gigan_rentals(conn):
                        UPDATE rentals
                        SET status = 'rejected'
                        WHERE status = 'pending'
-                         AND requested_pickup_at < NOW()
+                         AND requested_pickup_at <  DATE_SUB(NOW(), INTERVAL 2 HOUR)
                        """)
     conn.commit()
 
@@ -251,6 +297,10 @@ def login():
 
                 if not check_password_hash(db_password, password):
                     return jsonify({"message": "비밀번호가 일치하지 않습니다"}), 401
+
+                session.clear()
+                session["user_id"] = db_id
+
                 return jsonify({"message": "로그인에 성공하였습니다."
                                    , "user": {"id": db_id,
                                               "studentid": studentid,
@@ -267,6 +317,12 @@ def login():
     except Exception as e:
         print("로그인 에러 {e}")
         return jsonify({"message": "로그인서버오류"}), 500
+
+
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({"message": "로그아웃되었습니다."}), 200
 
 
 @app.route("/api/users/<int:user_id>/status")
@@ -405,6 +461,7 @@ def get_items():
         conn.close()
 
 @app.route('/api/dashboard/kpi', methods=['GET'])
+@admin_required
 def dashboard_kpi():
     conn = get_connection()
     try:
@@ -437,6 +494,7 @@ def dashboard_kpi():
 
 
 @app.route('/api/dashboard/stats', methods=['GET'])
+@admin_required
 def dashboard_stats():
     conn = get_connection()
     try:
@@ -470,6 +528,7 @@ def dashboard_stats():
 
 
 @app.route('/api/students/pending', methods=['GET'])
+@admin_required
 def dashboard_students():
     conn = get_connection()
     try:
@@ -486,6 +545,7 @@ def dashboard_students():
 
 
 @app.route('/api/students/active', methods=['GET'])
+@admin_required
 def get_active_students():
     conn = get_connection()
     try:
@@ -529,6 +589,7 @@ def get_active_students():
         conn.close()
 
 @app.route('/api/students/<int:student_id>/approve', methods=['POST'])
+@admin_required
 def approve_student(student_id):
     conn = get_connection()
     try:
@@ -537,7 +598,7 @@ def approve_student(student_id):
                   UPDATE users
                   SET status = 'active'
                   WHERE id = %s
-                    AND status = 'pending' \
+                    AND status = 'pending' 
                   """
             cursor.execute(sql, (student_id,))
             conn.commit()
@@ -567,6 +628,7 @@ def approve_student(student_id):
 # 기존 신청자 승인하는 api 3개가 있었음 근디 이거 물품관리 바뀌면서 일단 지워둠 로그 남으니깐 필요하면 가져와
 
 @app.route('/api/items/<int:item_id>/borrowers', methods=['GET'])
+@admin_required
 def get_item_borrowers(item_id):
     conn = get_connection()
     try:
@@ -689,6 +751,7 @@ def get_my_rentals():
 
 # 물품 업데이트, 나말고 사용할 곳이 어디있을지 있나? 물품 대여후에 처리? 필요없을거 같긴함
 @app.route('/api/items/<int:item_id>/update', methods=['POST'])
+@admin_required
 def update_item(item_id):
     name = request.form.get("name")
     category_id = request.form.get("category_id")
@@ -734,6 +797,7 @@ def update_item(item_id):
 
 # 새 물품 추가하는 api
 @app.route('/api/items/add', methods=['POST'])
+@admin_required
 def add_item():
     name = request.form.get("name")
     category_id = request.form.get("category_id")
@@ -773,6 +837,7 @@ def add_item():
 
 # 물품 삭제 api
 @app.route('/api/items/<int:item_id>/delete', methods=['POST'])
+@admin_required
 def delete_item(item_id):
     conn = get_connection()
     try:
@@ -797,6 +862,7 @@ def delete_item(item_id):
 # 물품 전체로그 가져오는 api
 # 물품 전체 로그 api
 @app.route('/api/items/<int:item_id>/logs', methods=['GET'])
+@admin_required
 def get_item_logs(item_id):
     conn = get_connection()
     try:
@@ -845,6 +911,7 @@ def get_item_logs(item_id):
 
 
 @app.route('/api/dashboard/today-schedule', methods=['GET'])
+@admin_required
 def today_schedule():
     conn = get_connection()
     try:
@@ -882,6 +949,7 @@ def today_schedule():
 
 
 @app.route('/api/dashboard/heatmap', methods=['GET'])
+@admin_required
 def dashboard_heatmap():
     conn = get_connection()
     try:
@@ -900,6 +968,7 @@ def dashboard_heatmap():
 
  # 관리자 문의 목록 가져오기
 @app.route('/api/admin/inquiries', methods=['GET'])
+@admin_required
 def get_admin_inquiries():
     conn = get_connection()
     try:
@@ -948,6 +1017,7 @@ def get_admin_inquiries():
         conn.close()
 
 @app.route('/api/students/<int:student_id>/block', methods=['POST'])
+@admin_required
 def block_student(student_id):
     data = request.get_json()
     block_type = data.get("type")
@@ -981,6 +1051,7 @@ def block_student(student_id):
 
 
 @app.route('/api/students/<int:student_id>/unblock', methods=['POST'])
+@admin_required
 def unblock_student(student_id):
     conn = get_connection()
     try:
@@ -1004,10 +1075,11 @@ def unblock_student(student_id):
 # 관리자 문의 답변 관리 함수
 # 함수 잘못 넣어서 주석 된거 수정
 @app.route('/api/admin/input_inquiries/<int:inquiry_id>/answer', methods=['POST'])
+@admin_required
 def save_admin_inquiry_answer(inquiry_id):
     data = request.get_json()
 
-    admin_id = data.get("admin_id")
+    admin_id = session.get("user_id")
     answer_content = data.get("answer_content")
 
     if answer_content == "":
@@ -1050,6 +1122,7 @@ def save_admin_inquiry_answer(inquiry_id):
 
 
 @app.route('/api/admin/schedule-init-data', methods=['GET'])
+@admin_required
 def get_schedule_init_data():
     conn = get_connection()
     try:
@@ -1086,6 +1159,7 @@ def get_schedule_init_data():
         conn.close()
 
 @app.route('/api/admin/work-schedules', methods=['POST'])
+@admin_required
 def add_work_schedule():
     data = request.get_json()
     work_date, start_time = data.get("work_date"), data.get("start_time")
@@ -1122,6 +1196,7 @@ def add_work_schedule():
         conn.close()
 
 @app.route('/api/admin/work-schedules/<int:schedule_id>', methods=['PUT', 'DELETE'])
+@admin_required
 def manage_single_schedule(schedule_id):
     conn = get_connection()
     try:
@@ -1142,6 +1217,7 @@ def manage_single_schedule(schedule_id):
     finally:
         conn.close()
 @app.route('/api/admin/closed-days', methods=['POST'])
+@admin_required
 def add_closed_day():
     data = request.get_json()
     closed_date, reason = data.get("closed_date"), data.get("reason", "사유 없음")
@@ -1162,6 +1238,7 @@ def add_closed_day():
     finally:
         conn.close()
 @app.route('/api/admin/closed-days/<int:day_id>', methods=['DELETE'])
+@admin_required
 def remove_closed_day(day_id):
     conn = get_connection()
     try:
@@ -1227,11 +1304,9 @@ def get_user_inquiries(user_id):
 # 근무표도 가져와서 대여자가 누구인지도 보여줘야해서 코드가 많이 길어졌음 프론트처리도 가능할거 같은데
 # 그냥 백쪽에서 끝내려고함
 @app.route('/api/admin/rentals', methods=['GET'])
+@admin_required
 def get_admin_rentals():
-    admin_id = request.args.get("admin_id")
-
-    if not admin_id:
-        admin_id = "0"
+    admin_id = session.get("user_id")
 
     conn = get_connection()
     try:
@@ -1390,10 +1465,9 @@ def get_admin_rentals():
 
 # 수령 확인
 @app.route('/api/admin/rentals/<int:rental_id>/rent', methods=['POST'])
+@admin_required
 def admin_rental_rent(rental_id):
-    data = request.get_json() or {}
-
-    admin_id = data.get("admin_id")
+    admin_id = session.get("user_id")
     conn = get_connection()
     try:
         with conn.cursor() as cursor:
@@ -1423,9 +1497,9 @@ def admin_rental_rent(rental_id):
 
 # 반납 확인
 @app.route('/api/admin/rentals/<int:rental_id>/return', methods=['POST'])
+@admin_required
 def admin_rental_return(rental_id):
-    data = request.get_json()
-    admin_id = data.get("admin_id")
+    admin_id = session.get("user_id")
 
     conn = get_connection()
     try:
@@ -1460,14 +1534,9 @@ def admin_rental_return(rental_id):
 # 서브쿼리가 하는일이 대여가능 수량 계산하는건데 먼저 sum을 구할때는 자기자신 제이하고 승인, 대여, 연체중인것들이랑 연체제외 정상적으로 반납되는 시간들일때를 뺌
 # 그 외에 특이사항은 추후 피드백 통해서
 @app.route('/api/admin/rentals/<int:rental_id>/approve', methods=['POST'])
+@admin_required
 def admin_rental_approve(rental_id):
-    data = request.get_json() or {}
-    admin_id = data.get("admin_id")
-
-    if not admin_id:
-        return jsonify({
-            "message": "관리자 계정이 아닙니다."
-        }), 400
+    admin_id = session.get("user_id")
 
     conn = get_connection()
     try:
@@ -1480,9 +1549,12 @@ def admin_rental_approve(rental_id):
                                                                                     AND gigan.id != r.id
                                                                                     AND gigan.status IN ('approved', 'rented', 'overdue')
                                                                                     AND ( gigan.status = 'overdue' OR ( gigan.requested_pickup_at < r.requested_return_at AND gigan.requested_return_at > r.requested_pickup_at))
-                                                                                    ), 0)) AS available
+                                                                                    ), 0)) AS available,
+                                  u.phone,
+                                  i.name AS item_name
                            FROM rentals r
                                     JOIN items i ON r.item_id = i.id
+                                    JOIN users u ON r.user_id = u.id
                            WHERE r.id = %s
                              AND r.status = 'pending'
                            """, (rental_id,))
@@ -1515,6 +1587,22 @@ def admin_rental_approve(rental_id):
                 }), 400
 
         conn.commit()
+        try:
+            message_service = SolapiMessageService(
+                api_key=os.getenv("SOLAPI_API_KEY"),
+                api_secret=os.getenv("SOLAPI_API_SECRET")
+            )
+            message = RequestMessage(
+                from_=os.getenv("SOLAPI_FROM_NUMBER"),
+                to=rental["phone"],
+                subject="소프트웨어학부 학생회 Knock",
+                text=f"[소프트웨어학부 학생회 Knock]\n\n신청하신 '{rental['item_name']}' 물품 대여가 승인되었습니다."
+            )
+
+            message_service.send(message)
+            print(f"SMS 발송 성공: {rental['phone']}")
+        except Exception as sms_error:
+            print(f"SMS 발송 실패: {str(sms_error)}")
         return "", 200
 
     except Exception:
@@ -1530,9 +1618,9 @@ def admin_rental_approve(rental_id):
 # 예약 거절
 # 수정사항 1. 장난으로 거절하는 관리자 로그 관리 추가했음
 @app.route('/api/admin/rentals/<int:rental_id>/reject', methods=['POST'])
+@admin_required
 def admin_rental_reject(rental_id):
-    data = request.get_json() or {}
-    admin_id = data.get("admin_id")
+    admin_id = session.get("user_id")
 
     conn = get_connection()
     try:
@@ -1713,5 +1801,6 @@ def get_activity_img():
 
     finally:
         conn.close()
+
 if __name__ == "__main__":
-    app.run(port=8000, debug=True)
+    app.run(port=8000, debug=False)

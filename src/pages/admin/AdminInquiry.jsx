@@ -21,7 +21,7 @@ export default function AdminInquiry() {
     function getmunilist() {
         setmunicall(true);
 
-        fetch("http://localhost:8000/api/admin/inquiries")
+        fetch("/api/admin/inquiries")
             .then((res) => res.json())
             .then((data) => {
                 setmunilist(data);
@@ -87,7 +87,7 @@ export default function AdminInquiry() {
             return;
         }
 
-        fetch("http://localhost:8000/api/admin/input_inquiries/" + selectmuni.inquiry_id + "/answer", {
+        fetch("/api/admin/input_inquiries/" + selectmuni.inquiry_id + "/answer", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

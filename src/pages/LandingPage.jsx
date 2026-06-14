@@ -46,7 +46,7 @@ export default function LandingPage() {
     function getlandingstats() {
         setlanding_call(true);
 
-        fetch("http://localhost:8000/api/landing/stats")
+        fetch(" /api/landing/stats")
             .then((res) => res.json())
             .then((data) => {
                 setlandingstats(data);
@@ -58,7 +58,7 @@ export default function LandingPage() {
     }
 
     function get_gounea_img() {
-        fetch("http://localhost:8000/api/activity-img")
+        fetch(" /api/activity-img")
             .then((res) => res.json())
             .then((data) => {
                 setgounea_img_list(data);

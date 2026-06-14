@@ -25,7 +25,7 @@ export default function ItemCard({item, rentservice}) {
         }
         const userInfo = JSON.parse(saveduser);
         try {
-            const res = await fetch(`http://localhost:8000/api/rentals?user_id=${userInfo.id}`);
+            const res = await fetch(` /api/rentals?user_id=${userInfo.id}`);
             if (res.ok) {
                 const myRentals = await res.json();
                 const duplicate = myRentals.find(rental => {

@@ -19,7 +19,7 @@ export default function MyPage() {
         if (!user || !user.id) return;
         setIsLoading(true);
 
-        const fetchRentals = fetch(`http://localhost:8000/api/rentals?user_id=${user.id}`)
+        const fetchRentals = fetch(`/api/rentals?user_id=${user.id}`)
             .then((res) => res.json())
             .then((data) => {
                 const safeData = Array.isArray(data.rentals) ? data.rentals : [];
@@ -36,7 +36,7 @@ export default function MyPage() {
             })
             .catch((err) => console.log(err));
 
-        const fetchInquiries = fetch(`http://localhost:8000/api/users/${user.id}/inquiries`)
+        const fetchInquiries = fetch(`/api/users/${user.id}/inquiries`)
             .then((res) => res.json())
             .then((data) => {
                 setInquiryData(Array.isArray(data) ? data : []);
@@ -64,9 +64,13 @@ export default function MyPage() {
                 return;
             }
 
-            localStorage.removeItem("user");
-            sessionStorage.removeItem("user");
-            window.location.href = "/";
+            fetch("/api/logout", {
+                method: "POST"
+            }).finally(() => {
+                localStorage.removeItem("user");
+                sessionStorage.removeItem("user");
+                window.location.href = "/";
+            });
         });
     };
 

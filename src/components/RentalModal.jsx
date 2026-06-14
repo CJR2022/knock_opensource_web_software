@@ -27,13 +27,13 @@ export default function RentalModal({item, onClose, onSuccess}) {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await fetch('http://localhost:8000/api/work-schedules');
+                const res = await fetch('/api/work-schedules');
                 if (res.ok) {
                     const data = await res.json();
                     setSchedulelist(data);
                 }
 
-                const cRes = await fetch('http://localhost:8000/api/closed-days');
+                const cRes = await fetch('/api/closed-days');
                 if (cRes.ok) {
                     const cData = await cRes.json();
                     setClosedDays(cData);
@@ -132,7 +132,7 @@ export default function RentalModal({item, onClose, onSuccess}) {
             const rentStr = `${getLocalDateString(rentDate)} ${rentTime}:00`;
             const returnStr = `${getLocalDateString(returnDate)} ${returnTime}:00`;
 
-            const res = await fetch('http://localhost:8000/api/rentals', {
+            const res = await fetch('/api/rentals', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({

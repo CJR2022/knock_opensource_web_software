@@ -27,7 +27,7 @@ export default function RentalManager() {
     function getrentallist() {
         setrental_call(true);
 
-        fetch("http://localhost:8000/api/admin/rentals?admin_id=" + userid)
+        fetch("/api/admin/rentals?admin_id=" + userid)
             .then((res) => res.json())
             .then((data) => {
                 setrental_list(data);
@@ -71,7 +71,7 @@ export default function RentalManager() {
                 return;
             }
 
-            fetch("http://localhost:8000/api/admin/rentals/" + rentalid + "/approve", {
+            fetch("/api/admin/rentals/" + rentalid + "/approve", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -102,7 +102,7 @@ export default function RentalManager() {
     }
 
     function getcategory() {
-        fetch("http://localhost:8000/api/categories")
+        fetch(" /api/categories")
             .then((res) => res.json())
             .then((data) => {
                 setcategory(data);
@@ -217,7 +217,7 @@ export default function RentalManager() {
                 return;
             }
 
-            fetch("http://localhost:8000/api/admin/rentals/" + rentalid + "/rent", {
+            fetch(" /api/admin/rentals/" + rentalid + "/rent", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -278,7 +278,7 @@ export default function RentalManager() {
                 return;
             }
 
-            fetch("http://localhost:8000/api/admin/rentals/" + rentalid + "/return", {
+            fetch(" /api/admin/rentals/" + rentalid + "/return", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -326,7 +326,7 @@ export default function RentalManager() {
                 return;
             }
 
-            fetch("http://localhost:8000/api/admin/rentals/" + rentalid + "/reject", {
+            fetch(" /api/admin/rentals/" + rentalid + "/reject", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

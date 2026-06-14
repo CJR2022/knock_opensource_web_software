@@ -89,7 +89,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-- API 기본 주소: `http://localhost:8000`
+- API 기본 주소: ` `
 
 ### 협업용 노션 주소
 `

@@ -23,7 +23,7 @@ export default function LoginPage() {
             return;
         }
         try {
-            const response = await fetch("http://localhost:8000/api/login",
+            const response = await fetch(" /api/login",
                 {
                     method: "POST",
                     headers: {
@@ -156,7 +156,7 @@ export default function LoginPage() {
 
                 <div className="w-full px-4 mb-2 text-center">
                     <p className="text-xs font-bold text-gray-400 tracking-wide">
-                        소프트웨어학부 21대 학생회 KNOCK
+                        소프트웨어학부 14대 학생회 KNOCK
                     </p>
                 </div>
 
